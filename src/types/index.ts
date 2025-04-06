@@ -18,6 +18,25 @@ export interface ProjectResource {
   type: 'tutorial' | 'documentation' | 'github' | 'article';
 }
 
+export interface ProjectReview {
+  id: string;
+  userId: string;
+  username: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+export interface ProjectSourceCode {
+  githubUrl?: string;
+  codeSamples?: Array<{
+    language: string;
+    code: string;
+    description: string;
+  }>;
+  relatedResources: ProjectResource[];
+}
+
 export interface ProjectSuggestion {
   id: string;
   title: string;
@@ -27,4 +46,6 @@ export interface ProjectSuggestion {
   timeEstimate: string;
   resources: ProjectResource[];
   tags: string[];
+  sourceCode?: ProjectSourceCode;
+  reviews?: ProjectReview[];
 }
