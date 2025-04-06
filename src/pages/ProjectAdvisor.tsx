@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -24,9 +24,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DeveloperProfile, ProjectSuggestion, Skill } from '@/types';
+import { DeveloperProfile, ProjectSuggestion, Skill, AIConfigState, AIModelConfig } from '@/types';
 import { mockProjects } from '@/data/mockData';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
+import AIConfigDialog from '@/components/AIConfigDialog';
 
 const ProjectAdvisor = () => {
   const { toast } = useToast();
@@ -40,6 +41,42 @@ const ProjectAdvisor = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [suggestions, setSuggestions] = useState<ProjectSuggestion[]>([]);
   const [savedProjects, setSavedProjects] = useState<ProjectSuggestion[]>([]);
+  const [aiConfig, setAIConfig] = useState<AIConfigState>({
+    openai: { provider: 'openai', apiKey: '', enabled: false },
+    gemini: { provider: 'gemini', apiKey: '', enabled: false },
+    claude: { provider: 'claude', apiKey: '', enabled: false },
+    github: { provider: 'github', apiKey: '', enabled: false }
+  });
+
+  // Load saved API keys and projects from localStorage
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('aiConfig');
+    if (savedConfig) {
+      try {
+        setAIConfig(JSON.parse(savedConfig));
+      } catch (e) {
+        console.error('Failed to parse saved AI config');
+      }
+    }
+
+    const saved = localStorage.getItem('savedProjects');
+    if (saved) {
+      try {
+        setSavedProjects(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved projects');
+      }
+    }
+  }, []);
+
+  // Save API keys and projects to localStorage
+  useEffect(() => {
+    localStorage.setItem('aiConfig', JSON.stringify(aiConfig));
+  }, [aiConfig]);
+
+  useEffect(() => {
+    localStorage.setItem('savedProjects', JSON.stringify(savedProjects));
+  }, [savedProjects]);
 
   const addSkill = () => {
     if (!currentSkill.trim()) {
@@ -65,6 +102,133 @@ const ProjectAdvisor = () => {
     setSkills(skills.filter(skill => skill.id !== id));
   };
 
+  const getRandomTags = () => {
+    const allTags = [
+      'Web Development', 'Mobile App', 'AI/ML', 'Data Science', 'IoT', 
+      'Blockchain', 'Game Development', 'DevOps', 'Cloud Computing',
+      'Cybersecurity', 'AR/VR', 'Automation', 'UI/UX', 'Microservices',
+      'Frontend', 'Backend', 'Full Stack', 'Low-Code', 'API Development'
+    ];
+    
+    const shuffled = [...allTags].sort(() => 0.5 - Math.random());
+    const count = Math.floor(Math.random() * 4) + 2; // 2-5 tags
+    return shuffled.slice(0, count);
+  };
+
+  const getRandomSkills = () => {
+    const allSkills = [
+      'JavaScript', 'Python', 'React', 'Node.js', 'TypeScript', 'AWS',
+      'Docker', 'Kubernetes', 'GraphQL', 'MongoDB', 'SQL', 'Firebase',
+      'Flutter', 'Swift', 'Kotlin', 'Go', 'Rust', 'C#', 'Java', 'PHP',
+      'TensorFlow', 'PyTorch', 'Vue.js', 'Angular', 'Next.js', 'Express',
+      'CSS', 'HTML', 'Tailwind', 'Bootstrap', 'Material UI', 'Redux'
+    ];
+    
+    // Get user skills first
+    let projectSkills = skills.map(s => s.name);
+    
+    // Add some random skills
+    if (projectSkills.length < 5) {
+      const shuffled = [...allSkills].sort(() => 0.5 - Math.random());
+      const additionalCount = Math.floor(Math.random() * 3) + 1; // 1-3 additional skills
+      shuffled.slice(0, additionalCount).forEach(skill => {
+        if (!projectSkills.includes(skill)) {
+          projectSkills.push(skill);
+        }
+      });
+    }
+    
+    return projectSkills;
+  };
+
+  const getRandomTimeEstimate = () => {
+    const timeRanges = [
+      '1-2 weeks', '2-3 weeks', '3-4 weeks', 
+      '1-2 months', '2-3 months', '3-6 months'
+    ];
+    return timeRanges[Math.floor(Math.random() * timeRanges.length)];
+  };
+
+  const getRandomResources = () => {
+    const resourceTitles = [
+      'Getting Started Guide', 'API Documentation', 'GitHub Repository',
+      'Video Tutorial', 'Interactive Tutorial', 'Stack Overflow Solutions',
+      'Best Practices Guide', 'Code Samples', 'Community Forum',
+      'DevOps Pipeline Setup', 'Testing Guidelines', 'Security Best Practices'
+    ];
+    
+    const count = Math.floor(Math.random() * 3) + 2; // 2-4 resources
+    const resources: ProjectResource[] = [];
+    
+    for (let i = 0; i < count; i++) {
+      const title = resourceTitles[Math.floor(Math.random() * resourceTitles.length)];
+      const types: Array<'tutorial' | 'documentation' | 'github' | 'article'> = ['tutorial', 'documentation', 'github', 'article'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      resources.push({
+        title: `${title} for ${getRandomSkills()[0]}`,
+        url: '#',
+        type
+      });
+    }
+    
+    return resources;
+  };
+
+  const generateRandomProject = (id: string): ProjectSuggestion => {
+    const projectTitles = [
+      'AI-powered Task Manager', 'IoT Home Monitoring System', 'Blockchain Voting Platform',
+      'AR Shopping Experience', 'Voice-Controlled Smart Assistant', 'Personalized Learning App',
+      'Real-time Collaboration Tool', 'Cryptocurrency Portfolio Tracker', 'Mental Health Wellness App',
+      'Social Media Content Scheduler', 'E-commerce Recommendation Engine', 'Decentralized File Storage',
+      'Augmented Reality Navigation', 'Peer-to-peer Ridesharing Platform', 'Language Learning Gamification',
+      'Recipe Recommendation System', 'Remote Team Collaboration Platform', 'Personal Finance Tracker',
+      'Virtual Study Group Platform', 'Cross-platform Mobile Game', 'Job Application Tracker',
+      'Smart City Traffic Management', 'Virtual Reality Training Simulator', 'Healthcare Patient Portal',
+      'Custom CRM Solution', 'Music Recommendation System', 'Travel Itinerary Planner',
+      'Project Management Dashboard', 'Sustainable Living Tracker', 'Automated Code Reviewer'
+    ];
+
+    const descriptions = [
+      'A comprehensive solution that helps users streamline their workflow and boost productivity.',
+      'An innovative platform that leverages cutting-edge technology to solve real-world problems.',
+      'A user-friendly application designed to simplify complex processes and improve user experience.',
+      'A powerful tool that provides data-driven insights and actionable recommendations.',
+      'A next-generation system that combines multiple technologies for a seamless experience.',
+      'A scalable solution that addresses growing needs in the digital landscape.',
+      'A versatile application that caters to diverse user requirements across different domains.',
+      'A feature-rich platform that offers extensive customization and integration capabilities.',
+      'An intelligent system that learns from user behavior to deliver personalized experiences.',
+      'A robust application built with security and performance in mind.'
+    ];
+
+    // Combine a random title with a random description plus some specifics about the title
+    const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
+    const baseDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+    const specificDescription = `This ${title.toLowerCase()} project allows users to ${
+      Math.random() > 0.5 ? 'efficiently manage' : 'seamlessly interact with'
+    } ${
+      Math.random() > 0.5 ? 'data' : 'content'
+    } through a ${
+      Math.random() > 0.5 ? 'modern interface' : 'intuitive UI'
+    }.`;
+
+    return {
+      id,
+      title,
+      description: `${baseDescription} ${specificDescription}`,
+      difficulty: ['beginner', 'intermediate', 'advanced'][Math.floor(Math.random() * 3)] as 'beginner' | 'intermediate' | 'advanced',
+      skills: getRandomSkills(),
+      timeEstimate: getRandomTimeEstimate(),
+      resources: getRandomResources(),
+      tags: getRandomTags(),
+      sourceCode: {
+        githubUrl: Math.random() > 0.3 ? 'https://github.com/example/repo' : undefined,
+        relatedResources: getRandomResources()
+      }
+    };
+  };
+
   const generateProjects = () => {
     if (skills.length === 0) {
       toast({
@@ -77,24 +241,23 @@ const ProjectAdvisor = () => {
 
     setIsGenerating(true);
 
-    // Simulate API call
+    // Simulate API call delay
     setTimeout(() => {
-      // Filter mock projects based on skill level
-      const userLevel = getOverallSkillLevel();
-      const matchedProjects = mockProjects.filter(project => {
-        if (userLevel === 'beginner' && project.difficulty === 'beginner') return true;
-        if (userLevel === 'intermediate' && (project.difficulty === 'beginner' || project.difficulty === 'intermediate')) return true;
-        if (userLevel === 'advanced') return true;
-        return false;
-      });
+      // Generate random number of projects between 10-20
+      const projectCount = Math.floor(Math.random() * 11) + 10; // 10-20
+      const newProjects: ProjectSuggestion[] = [];
+      
+      for (let i = 0; i < projectCount; i++) {
+        newProjects.push(generateRandomProject(`project-${Date.now()}-${i}`));
+      }
 
-      setSuggestions(matchedProjects);
+      setSuggestions(newProjects);
       setIsGenerating(false);
       setActiveTab('suggestions');
       
       toast({
         title: "Projects Generated!",
-        description: `Found ${matchedProjects.length} projects matching your profile.`,
+        description: `Found ${newProjects.length} projects matching your profile.`,
       });
     }, 2000);
   };
@@ -130,13 +293,28 @@ const ProjectAdvisor = () => {
     });
   };
 
+  const updateAIConfig = (newConfig: AIConfigState) => {
+    setAIConfig(newConfig);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container py-8">
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl">Project Advisor</h1>
-          <p className="text-muted-foreground">Get personalized project suggestions based on your developer profile.</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-dev-primary to-dev-accent">
+                Project Advisor
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Get personalized project suggestions based on your developer profile.
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <AIConfigDialog config={aiConfig} onUpdateConfig={updateAIConfig} />
+            </div>
+          </div>
           
           <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
@@ -265,7 +443,7 @@ const ProjectAdvisor = () => {
             
             <TabsContent value="suggestions">
               {suggestions.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {suggestions.map((project) => (
                     <Card key={project.id} className="hover:shadow-md transition-shadow">
                       <CardHeader>

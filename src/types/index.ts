@@ -49,3 +49,16 @@ export interface ProjectSuggestion {
   sourceCode?: ProjectSourceCode;
   reviews?: ProjectReview[];
 }
+
+export interface AIModelConfig {
+  provider: 'openai' | 'gemini' | 'claude' | 'github';
+  apiKey: string;
+  enabled: boolean;
+}
+
+export interface AIConfigState {
+  openai: AIModelConfig;
+  gemini: AIModelConfig;
+  claude: AIModelConfig;
+  github: AIModelConfig;
+}
