@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DeveloperProfile, ProjectSuggestion, Skill, AIConfigState, AIModelConfig } from '@/types';
+import { DeveloperProfile, ProjectSuggestion, ProjectResource, Skill, AIConfigState, AIModelConfig } from '@/types';
 import { mockProjects } from '@/data/mockData';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import AIConfigDialog from '@/components/AIConfigDialog';
