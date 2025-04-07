@@ -3,8 +3,11 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const HeroSection: React.FC = () => {
+  const { user } = useAuth();
+
   return (
     <div className="bg-hero-pattern py-20 lg:py-32 overflow-hidden relative">
       <div className="container px-4 md:px-6">
@@ -20,15 +23,28 @@ const HeroSection: React.FC = () => {
               DevGenie analyzes your skills, interests, and goals to suggest tailored coding projects that will help you grow as a developer.
             </p>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Link to="/advisor">
-                <Button size="lg" className="bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary text-white">
-                  Get Project Ideas
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline">
-                Learn More
-              </Button>
+              {user ? (
+                <Link to="/advisor">
+                  <Button size="lg" className="bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary text-white">
+                    Get Project Ideas
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button size="lg" className="bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary text-white">
+                      Sign Up Free
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/advisor">
+                    <Button size="lg" variant="outline">
+                      Try It Out
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           <div className="mx-auto lg:mx-0 animate-fade-in relative">

@@ -399,40 +399,40 @@ function renderUI(state) {
 ## Key Algorithms
 
 1. **Data Processing**
-   ```
-   function processData(rawData) {
-     const filteredData = filterInvalidEntries(rawData)
-     const transformedData = applyTransformations(filteredData)
-     const groupedData = groupByCategory(transformedData)
-     return sortByPriority(groupedData)
-   }
-   ```
+\`\`\`
+function processData(rawData) {
+  const filteredData = rawData.filter(item => item && item.isValid)
+  const transformedData = filteredData.map(item => transformItem(item))
+  const groupedData = groupData(transformedData)
+  return sortData(groupedData)
+}
+\`\`\`
 
 2. **User Preference Management**
-   ```
-   function managePreferences(userId) {
-     const savedPreferences = loadUserPreferences(userId)
-     const defaultSettings = getDefaultSettings()
-     
-     return {
-       ...defaultSettings,
-       ...savedPreferences,
-       lastUpdated: getCurrentTimestamp()
-     }
-   }
-   ```
+\`\`\`
+function managePreferences(userId) {
+  const savedPreferences = getUserPreferences(userId)
+  const defaultSettings = getApplicationDefaults()
+  
+  return {
+    ...defaultSettings,
+    ...savedPreferences,
+    lastUpdated: new Date().toISOString()
+  }
+}
+\`\`\`
 
 3. **Feature Optimization**
-   ```
-   function optimizePerformance(component) {
-     memoizeExpensiveCalculations()
-     implementLazyLoading()
-     batchStateUpdates()
-     minimizeDOMManipulation()
-     
-     return enhancedComponent
-   }
-   ````;
+\`\`\`
+function optimizePerformance(component) {
+  useMemoForExpensiveCalculations()
+  implementLazyLoadingForComponents()
+  useBatchedStateUpdates()
+  minimizeDOMChanges()
+  
+  return optimizedComponent
+}
+\`\`\``;
   };
 
   const renderSkeletonLoader = () => (

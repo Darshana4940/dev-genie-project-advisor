@@ -13,14 +13,16 @@ const CTASection: React.FC = () => {
             Let our AI suggest the perfect coding project based on your skills, interests, and goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/advisor">
+            <Link to="/auth">
               <Button size="lg" className="bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary text-white">
-                Get Started Now
+                Sign Up Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline">
-              View Sample Projects
-            </Button>
+            <Link to="/advisor">
+              <Button size="lg" variant="outline">
+                Try Before You Sign Up
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

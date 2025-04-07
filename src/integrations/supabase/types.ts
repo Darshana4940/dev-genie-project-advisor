@@ -9,7 +9,84 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      ai_configurations: {
+        Row: {
+          claude_config: Json | null
+          created_at: string
+          gemini_config: Json | null
+          github_config: Json | null
+          id: string
+          openai_config: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claude_config?: Json | null
+          created_at?: string
+          gemini_config?: Json | null
+          github_config?: Json | null
+          id?: string
+          openai_config?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claude_config?: Json | null
+          created_at?: string
+          gemini_config?: Json | null
+          github_config?: Json | null
+          id?: string
+          openai_config?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      saved_projects: {
+        Row: {
+          created_at: string
+          id: string
+          project_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_data: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
