@@ -33,7 +33,11 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/advisor" element={<ProjectAdvisor />} />
+      <Route path="/advisor" element={
+        <ProtectedRoute>
+          <ProjectAdvisor />
+        </ProtectedRoute>
+      } />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

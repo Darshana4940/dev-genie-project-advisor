@@ -1,4 +1,3 @@
-
 export interface Skill {
   id: string;
   name: string;
@@ -12,12 +11,6 @@ export interface DeveloperProfile {
   goals: string[];
 }
 
-export interface ProjectResource {
-  title: string;
-  url: string;
-  type: 'tutorial' | 'documentation' | 'github' | 'article';
-}
-
 export interface ProjectReview {
   id: string;
   userId: string;
@@ -25,6 +18,12 @@ export interface ProjectReview {
   rating: number;
   comment: string;
   date: string;
+}
+
+export interface ProjectResource {
+  title: string;
+  url: string;
+  type: 'tutorial' | 'documentation' | 'github' | 'article';
 }
 
 export interface ProjectSourceCode {
@@ -48,6 +47,7 @@ export interface ProjectSuggestion {
   tags: string[];
   sourceCode?: ProjectSourceCode;
   reviews?: ProjectReview[];
+  skillMatchScore?: number;
 }
 
 export interface AIModelConfig {
