@@ -1,6 +1,6 @@
-
 import { AIConfigState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { toJson } from '@/utils/typeUtils';
 
 interface ResearchPaperResponse {
   title: string;
@@ -185,10 +185,17 @@ export const generateResearchPaper = async (
   }
 };
 
-export const saveProjectToSupabase = async (project: any) => {
+export const saveProjectToSupabase = async (project: any, userId: string) => {
+  if (!userId) {
+    return { error: new Error('User ID is required to save a project') };
+  }
+
   const { error } = await supabase
     .from('saved_projects')
-    .insert({ project_data: project });
+    .insert({
+      project_data: toJson(project),
+      user_id: userId
+    });
   
   return { error };
 };

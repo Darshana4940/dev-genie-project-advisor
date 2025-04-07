@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Bookmark, FileText, MessageCircle, Share2 } from 'lucide-react';
 import ResearchPaperDialog from './ResearchPaperDialog';
 import ProjectReviewDialog from './ProjectReviewDialog';
+import { toJson } from '@/utils/typeUtils';
 
 interface ProjectActionButtonsProps {
   project: ProjectSuggestion;
@@ -38,7 +39,7 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
         .from('saved_projects')
         .insert({
           user_id: user.id,
-          project_data: project
+          project_data: toJson(project) // Convert to Json type
         });
 
       if (error) throw error;
