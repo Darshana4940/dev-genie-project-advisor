@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
@@ -28,6 +27,7 @@ import { DeveloperProfile, ProjectSuggestion, ProjectResource, Skill, AIConfigSt
 import { mockProjects } from '@/data/mockData';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import AIConfigDialog from '@/components/AIConfigDialog';
+import ProjectDetailView from '@/components/ProjectDetailView';
 
 const ProjectAdvisor = () => {
   const { toast } = useToast();
@@ -41,11 +41,13 @@ const ProjectAdvisor = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [suggestions, setSuggestions] = useState<ProjectSuggestion[]>([]);
   const [savedProjects, setSavedProjects] = useState<ProjectSuggestion[]>([]);
+  const [selectedProject, setSelectedProject] = useState<ProjectSuggestion | null>(null);
+  const [detailViewOpen, setDetailViewOpen] = useState(false);
   const [aiConfig, setAIConfig] = useState<AIConfigState>({
-    openai: { provider: 'openai', apiKey: '', enabled: false },
-    gemini: { provider: 'gemini', apiKey: '', enabled: false },
-    claude: { provider: 'claude', apiKey: '', enabled: false },
-    github: { provider: 'github', apiKey: '', enabled: false }
+    openai: { provider: 'openai', apiKey: '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', enabled: true },
+    gemini: { provider: 'gemini', apiKey: 'AIzaSyCxJs_wFZJubyvQGidv-VLNUoZ8MUVP62I', enabled: false },
+    claude: { provider: 'claude', apiKey: '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', enabled: false },
+    github: { provider: 'github', apiKey: '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', enabled: false }
   });
 
   // Load saved API keys and projects from localStorage
@@ -297,6 +299,11 @@ const ProjectAdvisor = () => {
     setAIConfig(newConfig);
   };
 
+  const openProjectDetails = (project: ProjectSuggestion) => {
+    setSelectedProject(project);
+    setDetailViewOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -474,7 +481,7 @@ const ProjectAdvisor = () => {
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Resources:</h4>
                           <ul className="space-y-2">
-                            {project.resources.map((resource, index) => (
+                            {project.resources.slice(0, 2).map((resource, index) => (
                               <li key={index} className="flex items-center gap-2 text-sm">
                                 <ExternalLink className="h-4 w-4 text-dev-primary" />
                                 <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-dev-primary hover:underline">
@@ -486,7 +493,11 @@ const ProjectAdvisor = () => {
                         </div>
                       </CardContent>
                       <CardFooter className="flex justify-between">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openProjectDetails(project)}
+                        >
                           More Details
                         </Button>
                         <Button 
@@ -557,7 +568,7 @@ const ProjectAdvisor = () => {
                           <div>
                             <h4 className="text-sm font-medium mb-2">Resources:</h4>
                             <ul className="space-y-2">
-                              {project.resources.map((resource, index) => (
+                              {project.resources.slice(0, 3).map((resource, index) => (
                                 <li key={index} className="flex items-center gap-2 text-sm">
                                   <ExternalLink className="h-4 w-4 text-dev-primary" />
                                   <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-dev-primary hover:underline">
@@ -569,6 +580,16 @@ const ProjectAdvisor = () => {
                           </div>
                         </div>
                       </CardContent>
+                      <CardFooter>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openProjectDetails(project)}
+                          className="w-full"
+                        >
+                          View Detailed Information
+                        </Button>
+                      </CardFooter>
                     </Card>
                   ))}
                 </div>
@@ -588,6 +609,12 @@ const ProjectAdvisor = () => {
         </div>
       </main>
       <Footer />
+      <ProjectDetailView 
+        project={selectedProject}
+        open={detailViewOpen}
+        onOpenChange={setDetailViewOpen}
+        aiConfig={aiConfig}
+      />
     </div>
   );
 };

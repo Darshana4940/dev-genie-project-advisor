@@ -62,3 +62,10 @@ export interface AIConfigState {
   claude: AIModelConfig;
   github: AIModelConfig;
 }
+
+export interface ProjectDetails {
+  detailedDescription: string;
+  projectStructure: string;
+  roadmap: string;
+  flowchart: string;
+}
