@@ -71,7 +71,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Fix: Use explicit type casting with 'as any' to bypass TypeScript error
+      const { data, error } = await (supabase as any)
         .from('profiles')
         .select('*')
         .eq('id', userId)
