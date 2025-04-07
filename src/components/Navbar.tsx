@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Code, Home, Settings, LogOut, User } from 'lucide-react';
+import { Code, Home, Settings, LogOut, User, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   DropdownMenu,
@@ -35,7 +35,10 @@ const Navbar: React.FC = () => {
             Home
           </Link>
           <Link to="/advisor" className="text-muted-foreground hover:text-foreground">Projects</Link>
-          <Link to="/about" className="text-muted-foreground hover:text-foreground">About</Link>
+          <Link to="/about" className="text-muted-foreground hover:text-foreground flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            About
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
@@ -49,12 +52,12 @@ const Navbar: React.FC = () => {
                 <DropdownMenuLabel>{profile?.username || user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/settings">
+                  <Link to="/settings" className="flex items-center">
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="flex items-center">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>

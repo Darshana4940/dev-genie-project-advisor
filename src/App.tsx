@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AuthProvider from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
+import Settings from "./pages/Settings";
+import About from "./pages/About";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -38,6 +40,12 @@ const AppRoutes = () => {
           <ProjectAdvisor />
         </ProtectedRoute>
       } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Settings />
+        </ProtectedRoute>
+      } />
+      <Route path="/about" element={<About />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
