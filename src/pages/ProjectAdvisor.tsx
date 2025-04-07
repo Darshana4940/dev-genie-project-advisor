@@ -45,12 +45,11 @@ const ProjectAdvisor = () => {
   const [detailViewOpen, setDetailViewOpen] = useState(false);
   const [aiConfig, setAIConfig] = useState<AIConfigState>({
     openai: { provider: 'openai', apiKey: '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', enabled: true },
-    gemini: { provider: 'gemini', apiKey: 'AIzaSyCxJs_wFZJubyvQGidv-VLNUoZ8MUVP62I', enabled: false },
+    gemini: { provider: 'gemini', apiKey: 'AIzaSyCxJs_wFZJubyvQGidv-VLNUoZ8MUVP62I', enabled: true },
     claude: { provider: 'claude', apiKey: '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', enabled: false },
-    github: { provider: 'github', apiKey: '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', enabled: false }
+    github: { provider: 'github', apiKey: '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', enabled: true }
   });
 
-  // Load saved API keys and projects from localStorage
   useEffect(() => {
     const savedConfig = localStorage.getItem('aiConfig');
     if (savedConfig) {
@@ -71,7 +70,6 @@ const ProjectAdvisor = () => {
     }
   }, []);
 
-  // Save API keys and projects to localStorage
   useEffect(() => {
     localStorage.setItem('aiConfig', JSON.stringify(aiConfig));
   }, [aiConfig]);
@@ -126,10 +124,8 @@ const ProjectAdvisor = () => {
       'CSS', 'HTML', 'Tailwind', 'Bootstrap', 'Material UI', 'Redux'
     ];
     
-    // Get user skills first
     let projectSkills = skills.map(s => s.name);
     
-    // Add some random skills
     if (projectSkills.length < 5) {
       const shuffled = [...allSkills].sort(() => 0.5 - Math.random());
       const additionalCount = Math.floor(Math.random() * 3) + 1; // 1-3 additional skills
@@ -204,7 +200,6 @@ const ProjectAdvisor = () => {
       'A robust application built with security and performance in mind.'
     ];
 
-    // Combine a random title with a random description plus some specifics about the title
     const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
     const baseDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
     const specificDescription = `This ${title.toLowerCase()} project allows users to ${
@@ -243,9 +238,7 @@ const ProjectAdvisor = () => {
 
     setIsGenerating(true);
 
-    // Simulate API call delay
     setTimeout(() => {
-      // Generate random number of projects between 10-20
       const projectCount = Math.floor(Math.random() * 11) + 10; // 10-20
       const newProjects: ProjectSuggestion[] = [];
       

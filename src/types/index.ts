@@ -68,4 +68,5 @@ export interface ProjectDetails {
   projectStructure: string;
   roadmap: string;
   flowchart: string;
+  pseudoCode?: string;
 }

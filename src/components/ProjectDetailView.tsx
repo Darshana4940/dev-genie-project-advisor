@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { AIConfigState, ProjectSuggestion } from '@/types';
-import { Loader2, FileText, GitBranch, Map } from 'lucide-react';
+import { AIConfigState, ProjectSuggestion, ProjectDetails } from '@/types';
+import { Loader2, FileText, GitBranch, Map, Code } from 'lucide-react';
 import ProjectSourceCode from '@/components/ProjectSourceCode';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProjectDetailViewProps {
   project: ProjectSuggestion | null;
@@ -29,15 +30,18 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   onOpenChange,
   aiConfig
 }) => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('description');
-  const [projectDetails, setProjectDetails] = useState({
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails>({
     detailedDescription: '',
     projectStructure: '',
     roadmap: '',
-    flowchart: ''
+    flowchart: '',
+    pseudoCode: ''
   });
   const [sourceCodeOpen, setSourceCodeOpen] = useState(false);
+  const [activeAI, setActiveAI] = useState<string>('');
 
   useEffect(() => {
     if (open && project) {
@@ -46,19 +50,44 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     }
   }, [open, project]);
 
+  const getEnabledAI = (): string => {
+    // Priority order: OpenAI -> Gemini -> Claude -> GitHub
+    if (aiConfig.openai.enabled && aiConfig.openai.apiKey) {
+      return 'openai';
+    } else if (aiConfig.gemini.enabled && aiConfig.gemini.apiKey) {
+      return 'gemini';
+    } else if (aiConfig.claude.enabled && aiConfig.claude.apiKey) {
+      return 'claude';
+    } else if (aiConfig.github.enabled && aiConfig.github.apiKey) {
+      return 'github';
+    }
+    return '';
+  };
+
   const fetchProjectDetails = async (project: ProjectSuggestion) => {
-    // In a real implementation, you would call one of the AI APIs based on which is enabled
+    // Determine which AI to use based on priority and availability
+    const enabledAI = getEnabledAI();
+    setActiveAI(enabledAI);
+    
+    if (!enabledAI) {
+      toast({
+        title: "No AI Model Available",
+        description: "Please enable and configure at least one AI model in settings.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // In a real implementation, you would make API calls to the selected AI service
     // For now, we'll simulate a response
-    
-    // Check which AI model is enabled
-    const enabledAI = Object.entries(aiConfig).find(([_, config]) => config.enabled);
-    
     setTimeout(() => {
       setProjectDetails({
-        detailedDescription: generateDetailedDescription(project, enabledAI?.[0] || 'openai'),
+        detailedDescription: generateDetailedDescription(project, enabledAI),
         projectStructure: generateProjectStructure(project),
         roadmap: generateRoadmap(project),
-        flowchart: generateFlowchart(project)
+        flowchart: generateFlowchart(project),
+        pseudoCode: generatePseudoCode(project)
       });
       setLoading(false);
     }, 2000);
@@ -251,6 +280,161 @@ project-root/
 \`\`\``;
   };
 
+  const generatePseudoCode = (project: ProjectSuggestion) => {
+    return `# Pseudo Code for ${project.title}
+
+\`\`\`
+// Main Application Structure
+function initializeApp() {
+  setupConfiguration()
+  registerComponents()
+  setupRouting()
+  initializeState()
+  
+  // Authentication (if needed)
+  if (requiresAuthentication) {
+    setupAuthProviders()
+    checkUserSession()
+  }
+  
+  // Initialize services
+  setupAPIServices()
+  setupDataServices()
+  
+  // Render main UI
+  renderApplication()
+}
+
+// User Authentication Flow
+function authenticateUser(credentials) {
+  validateInput(credentials)
+  
+  if (inputIsValid) {
+    result = sendAuthRequest(credentials)
+    
+    if (result.success) {
+      saveUserSession(result.userData)
+      redirectToDashboard()
+    } else {
+      displayErrorMessage(result.error)
+    }
+  } else {
+    highlightInvalidFields()
+  }
+}
+
+// Main Feature Implementation
+function implementMainFeature() {
+  // Initialize components
+  const uiComponents = createComponents()
+  
+  // Setup data flow
+  const dataStore = initializeDataStore()
+  
+  // Register event handlers
+  uiComponents.forEach(component => {
+    registerEventListeners(component)
+  })
+  
+  // Setup data synchronization
+  setupRealTimeUpdates(dataStore)
+  
+  // Handle user interactions
+  function handleUserAction(action) {
+    validateAction(action)
+    updateState(action)
+    renderUpdates()
+    
+    if (requiresServerSync) {
+      syncWithServer()
+    }
+  }
+}
+
+// Data Management
+function manageData() {
+  // Define data models
+  const dataModels = defineModels()
+  
+  // CRUD operations
+  function createItem(data) {
+    validateData(data)
+    const newItem = formatData(data)
+    saveToStore(newItem)
+    return newItem
+  }
+  
+  function retrieveItems(filters) {
+    const query = buildQuery(filters)
+    return fetchFromStore(query)
+  }
+  
+  function updateItem(id, changes) {
+    validateChanges(changes)
+    applyChanges(id, changes)
+    notifySubscribers(id)
+  }
+  
+  function deleteItem(id) {
+    removeFromStore(id)
+    cleanupReferences(id)
+  }
+}
+
+// UI Rendering Logic
+function renderUI(state) {
+  const components = mapStateToComponents(state)
+  
+  components.forEach(component => {
+    if (component.shouldUpdate) {
+      updateDOMElement(component)
+    }
+  })
+  
+  attachEventHandlers()
+  optimizeForPerformance()
+}
+\`\`\`
+
+## Key Algorithms
+
+1. **Data Processing**
+   ```
+   function processData(rawData) {
+     const filteredData = filterInvalidEntries(rawData)
+     const transformedData = applyTransformations(filteredData)
+     const groupedData = groupByCategory(transformedData)
+     return sortByPriority(groupedData)
+   }
+   ```
+
+2. **User Preference Management**
+   ```
+   function managePreferences(userId) {
+     const savedPreferences = loadUserPreferences(userId)
+     const defaultSettings = getDefaultSettings()
+     
+     return {
+       ...defaultSettings,
+       ...savedPreferences,
+       lastUpdated: getCurrentTimestamp()
+     }
+   }
+   ```
+
+3. **Feature Optimization**
+   ```
+   function optimizePerformance(component) {
+     memoizeExpensiveCalculations()
+     implementLazyLoading()
+     batchStateUpdates()
+     minimizeDOMManipulation()
+     
+     return enhancedComponent
+   }
+   ````;
+  };
+
   const renderSkeletonLoader = () => (
     <div className="space-y-4 animate-pulse">
       <div className="h-8 bg-muted rounded w-2/3"></div>
@@ -270,6 +454,7 @@ project-root/
             <SheetTitle className="text-2xl">Project Details</SheetTitle>
             <SheetDescription>
               {project && `Comprehensive information about "${project.title}"`}
+              {activeAI && <span className="text-xs ml-2 bg-muted px-2 py-1 rounded-full">{activeAI.toUpperCase()} AI</span>}
             </SheetDescription>
           </SheetHeader>
 
@@ -282,7 +467,7 @@ project-root/
               </div>
               
               <Tabs defaultValue="description" value={currentTab} onValueChange={setCurrentTab}>
-                <TabsList className="mb-4 w-full grid grid-cols-4">
+                <TabsList className="mb-4 w-full grid grid-cols-5">
                   <TabsTrigger value="description" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     <span className="hidden sm:inline">Description</span>
@@ -300,6 +485,10 @@ project-root/
                       <path d="M8 6H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-1M8 6v5h10V6M8 6V4a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
                     </svg>
                     <span className="hidden sm:inline">Flowchart</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="pseudocode" className="flex items-center gap-2">
+                    <Code className="h-4 w-4" />
+                    <span className="hidden sm:inline">Pseudo Code</span>
                   </TabsTrigger>
                 </TabsList>
                 
@@ -414,6 +603,36 @@ project-root/
                                     <li key={idx}>{item.trim()}</li>
                                   ))}
                                 </ul>
+                              </div>;
+                            } else {
+                              return <p key={i} className="mb-2">{line}</p>;
+                            }
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="pseudocode" className="space-y-4">
+                  {loading ? (
+                    renderSkeletonLoader()
+                  ) : (
+                    <Card>
+                      <CardContent className="p-6 prose prose-sm max-w-none dark:prose-invert">
+                        <div className="whitespace-pre-line markdown-content">
+                          {projectDetails.pseudoCode.split('\n').map((line, i) => {
+                            if (line.startsWith('# ')) {
+                              return <h1 key={i} className="text-2xl font-bold mt-4 mb-2">{line.substring(2)}</h1>;
+                            } else if (line.startsWith('## ')) {
+                              return <h2 key={i} className="text-xl font-bold mt-4 mb-2">{line.substring(3)}</h2>;
+                            } else if (line.startsWith('```') && line.length === 3) {
+                              return null;
+                            } else if (line.startsWith('   ') || line.startsWith('function ') || line.startsWith('// ')) {
+                              return <pre key={i} className="bg-muted p-1 rounded-md text-xs overflow-x-auto my-0 font-mono">{line}</pre>;
+                            } else if (line.startsWith('1. **')) {
+                              return <div key={i} className="flex flex-col mb-3 mt-2">
+                                <span className="font-bold">{line.split('**')[1]}</span>
                               </div>;
                             } else {
                               return <p key={i} className="mb-2">{line}</p>;
