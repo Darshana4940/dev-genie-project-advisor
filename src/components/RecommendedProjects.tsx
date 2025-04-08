@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { getRecommendedProjects, submitProjectFeedback } from '@/services/aiResearchService';
-import { ProjectSuggestion } from '@/types';
+import { ProjectSuggestion, ProjectFeedback } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

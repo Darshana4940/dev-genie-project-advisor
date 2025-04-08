@@ -244,7 +244,6 @@ export const submitProjectFeedback = async (projectId: string, feedback: Project
     // Store feedback in saved_projects table with a special format
     const feedbackData = {
       ...feedback,
-      projectId,
     };
     
     // Get the current user
