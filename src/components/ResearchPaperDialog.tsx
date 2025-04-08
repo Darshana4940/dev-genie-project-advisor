@@ -17,25 +17,26 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, FileText, BookOpen, Link as LinkIcon, BookMarked } from 'lucide-react';
+import { Loader2, FileText, BookOpen, Link as LinkIcon, BookMarked, Download } from 'lucide-react';
 
 interface ResearchPaperDialogProps {
   projectTitle?: string;
-  projectDescription?: string; // Added project description
-  projectSkills?: string[]; // Added project skills
+  projectDescription?: string;
+  projectSkills?: string[];
   aiConfig: AIConfigState;
 }
 
 const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({ 
   projectTitle = '',
-  projectDescription = '', // Default to empty string
-  projectSkills = [], // Default to empty array
+  projectDescription = '',
+  projectSkills = [],
   aiConfig
 }) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState(projectTitle);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [currentTab, setCurrentTab] = useState('abstract');
   const [paperData, setPaperData] = useState<{
     title: string;
@@ -100,6 +101,53 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
     }
   };
 
+  const downloadPaper = () => {
+    if (!paperData) return;
+    
+    setIsDownloading(true);
+    
+    try {
+      // Create full paper content
+      const fullPaper = `# ${paperData.title}
+
+## Abstract
+${paperData.abstract}
+
+## Content
+${paperData.content}
+
+## References
+${paperData.references.map(ref => `- ${ref}`).join('\n')}
+`;
+
+      // Create blob and download link
+      const blob = new Blob([fullPaper], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${paperData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download Complete",
+        description: "Research paper has been downloaded as Markdown file."
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Could not download the research paper.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -140,7 +188,23 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
           
           {paperData && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold">{paperData.title}</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold">{paperData.title}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadPaper}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  <span>Download</span>
+                </Button>
+              </div>
               
               <Tabs defaultValue="abstract" value={currentTab} onValueChange={setCurrentTab}>
                 <TabsList className="grid grid-cols-3">
@@ -155,7 +219,7 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
                 <div className="mt-4">
                   <TabsContent value="abstract" className="m-0">
                     <ScrollArea className="h-[400px] rounded-md border p-4">
-                      <div className="prose prose-sm max-w-none">
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
                         {paperData.abstract.split('\n').map((paragraph, i) => (
                           paragraph.trim() ? <p key={i}>{paragraph}</p> : null
                         ))}
@@ -165,7 +229,7 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
                   
                   <TabsContent value="content" className="m-0">
                     <ScrollArea className="h-[400px] rounded-md border p-4">
-                      <div className="prose prose-sm max-w-none">
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
                         {paperData.content.split('\n').map((paragraph, i) => (
                           paragraph.trim() ? <p key={i}>{paragraph}</p> : null
                         ))}
@@ -175,7 +239,7 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
                   
                   <TabsContent value="references" className="m-0">
                     <ScrollArea className="h-[400px] rounded-md border p-4">
-                      <div className="prose prose-sm max-w-none">
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
                         <ul className="space-y-2">
                           {paperData.references.map((ref, i) => (
                             <li key={i} className="flex items-start gap-2">
