@@ -238,50 +238,28 @@ export const getRecommendedProjects = async (skills: string[]) => {
   return mockRecommendations(skills);
 };
 
-// Modified function to submit project feedback
+// Modified function to submit project feedback using the new project_feedback table
 export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
   try {
     // Create a feedback object that includes the projectId
     const feedbackData = {
-      projectId,
       ...feedback,
+      projectId,
     };
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser();
     
-    // Create a project object with feedback included
-    const projectWithFeedback = {
-      id: `feedback-${projectId}-${Date.now()}`,
-      title: `Feedback for project ${projectId}`,
-      description: feedback.comment || `Feedback submitted: ${feedback.isPositive ? 'Positive' : 'Negative'}`,
-      feedback: feedbackData,
-      isProjectFeedback: true // Flag to identify this as feedback
-    };
+    // Insert feedback into the project_feedback table
+    const { error } = await supabase
+      .from('project_feedback')
+      .insert({
+        project_id: projectId,
+        user_id: user?.id || null, // Allow anonymous feedback
+        feedback_data: toJson(feedbackData)
+      });
     
-    // Store in saved_projects table
-    if (user) {
-      // If authenticated, associate feedback with user
-      const { error } = await supabase
-        .from('saved_projects')
-        .insert({
-          user_id: user.id,
-          project_data: toJson(projectWithFeedback)
-        });
-      
-      if (error) throw error;
-    } else {
-      // For anonymous users, create a temporary system user ID
-      const tempUserId = 'system-feedback';
-      const { error } = await supabase
-        .from('saved_projects')
-        .insert({
-          user_id: tempUserId,
-          project_data: toJson(projectWithFeedback)
-        });
-      
-      if (error) throw error;
-    }
+    if (error) throw error;
     
     return { success: true };
   } catch (error) {

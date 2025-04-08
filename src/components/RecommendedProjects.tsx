@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getRecommendedProjects, submitProjectFeedback } from '@/services/aiResearchService';
 import { ProjectSuggestion } from '@/types';
@@ -49,7 +48,8 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
       await submitProjectFeedback(projectId, {
         isPositive,
         timestamp: new Date().toISOString(),
-        skills
+        skills,
+        projectId
       });
       
       setFeedbackSubmitted((prev) => ({

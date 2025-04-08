@@ -66,6 +66,30 @@ export type Database = {
         }
         Relationships: []
       }
+      project_feedback: {
+        Row: {
+          created_at: string
+          feedback_data: Json
+          id: string
+          project_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_data: Json
+          id?: string
+          project_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_data?: Json
+          id?: string
+          project_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       saved_projects: {
         Row: {
           created_at: string

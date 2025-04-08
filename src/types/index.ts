@@ -43,7 +43,7 @@ export interface ProjectFeedback {
   timestamp: string;
   comment?: string;
   skills: string[];
-  projectId?: string; // Added projectId to the interface
+  projectId: string; // Required projectId field
 }
 
 export interface ProjectSuggestion {
