@@ -5,8 +5,19 @@ import { ProjectSuggestion, ProjectFeedback } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
+import { Loader2, ThumbsUp, ThumbsDown, ExternalLink, Network } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  ResponsiveContainer, 
+  Tooltip, 
+  Legend,
+  ScatterChart, 
+  Scatter, 
+  XAxis, 
+  YAxis, 
+  ZAxis,
+  Cell
+} from 'recharts';
 
 interface RecommendedProjectsProps {
   skills: string[];
@@ -21,6 +32,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<ProjectSuggestion[]>([]);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
+  const [showSkillGraph, setShowSkillGraph] = useState(false);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -72,6 +84,49 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
     }
   };
 
+  const generateSkillGraphData = () => {
+    if (recommendations.length === 0) return [];
+    
+    // Extract all unique skills
+    const allSkills = new Set<string>();
+    recommendations.forEach(project => {
+      project.skills.forEach(skill => allSkills.add(skill));
+    });
+    skills.forEach(skill => allSkills.add(skill));
+    
+    const skillsArr = Array.from(allSkills);
+    
+    // Create graph data points for a scatter plot
+    // Each skill will be positioned in a circle-like arrangement
+    const graphData = skillsArr.map((skill, index) => {
+      const angle = (index / skillsArr.length) * Math.PI * 2;
+      const radius = 100;
+      const x = Math.cos(angle) * radius + 100;
+      const y = Math.sin(angle) * radius + 100;
+      
+      // Count projects that use this skill
+      const projectCount = recommendations.filter(project => 
+        project.skills.includes(skill)
+      ).length;
+      
+      // Check if this is a user skill
+      const isUserSkill = skills.includes(skill);
+      
+      return {
+        name: skill,
+        x: x,
+        y: y,
+        z: projectCount * 10 + 10, // Size based on project count
+        isUserSkill,
+        relations: recommendations
+          .filter(project => project.skills.includes(skill))
+          .map(project => project.title)
+      };
+    });
+    
+    return graphData;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -90,9 +145,97 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
     );
   }
 
+  const skillGraphData = generateSkillGraphData();
+
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold">Recommended Projects</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-semibold">Recommended Projects</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2"
+          onClick={() => setShowSkillGraph(!showSkillGraph)}
+        >
+          <Network className="h-4 w-4" />
+          {showSkillGraph ? 'Hide Skill Graph' : 'Show Skill Graph'}
+        </Button>
+      </div>
+      
+      {showSkillGraph && (
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-base">Skill Relationship Graph</CardTitle>
+            <CardDescription>
+              Visualizing the relationship between your skills and recommended projects
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart 
+                  margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                >
+                  <XAxis type="number" dataKey="x" name="X" hide />
+                  <YAxis type="number" dataKey="y" name="Y" hide />
+                  <ZAxis type="number" dataKey="z" range={[20, 60]} name="Count" />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-background border rounded-md p-3 shadow-md">
+                            <p className="font-medium">{data.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {data.relations.length} related projects
+                            </p>
+                            {data.relations.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs font-medium">Related projects:</p>
+                                <ul className="text-xs">
+                                  {data.relations.slice(0, 3).map((proj: string, i: number) => (
+                                    <li key={i} className="text-muted-foreground">{proj}</li>
+                                  ))}
+                                  {data.relations.length > 3 && <li className="text-muted-foreground">...</li>}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Scatter name="Skill Graph" data={skillGraphData}>
+                    {skillGraphData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.isUserSkill ? '#2563eb' : '#64748b'}
+                      />
+                    ))}
+                  </Scatter>
+                  <Legend 
+                    content={() => (
+                      <div className="flex items-center justify-center gap-4 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                          <span>Your Skills</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-slate-500"></div>
+                          <span>Related Skills</span>
+                        </div>
+                      </div>
+                    )}
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <div className="grid gap-6 md:grid-cols-2">
         {recommendations.map((project) => (
           <Card key={project.id} className="hover:shadow-md transition-shadow">
