@@ -16,6 +16,13 @@ interface ProjectContext {
   skills?: string[];
 }
 
+interface ProjectFeedback {
+  isPositive: boolean;
+  timestamp: string;
+  skills: string[];
+  comment?: string;
+}
+
 export const generateResearchPaper = async (
   topic: string, 
   aiConfig: AIConfigState,
@@ -230,6 +237,42 @@ export const getRecommendedProjects = async (skills: string[]) => {
   // This would typically fetch from a backend
   // For now, return mock data based on skills
   return mockRecommendations(skills);
+};
+
+// New function to submit project feedback
+export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      // If no authenticated user, store feedback anonymously
+      const { error } = await supabase
+        .from('project_feedback')
+        .insert({
+          project_id: projectId,
+          feedback_data: toJson(feedback)
+        });
+      
+      if (error) throw error;
+    } else {
+      // If authenticated, associate feedback with user
+      const { error } = await supabase
+        .from('project_feedback')
+        .insert({
+          project_id: projectId,
+          user_id: user.id,
+          feedback_data: toJson(feedback)
+        });
+      
+      if (error) throw error;
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error submitting project feedback:", error);
+    throw error;
+  }
 };
 
 const mockRecommendations = (skills: string[]) => {

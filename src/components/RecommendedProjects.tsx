@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { getRecommendedProjects } from '@/services/aiResearchService';
+import { getRecommendedProjects, submitProjectFeedback } from '@/services/aiResearchService';
 import { ProjectSuggestion } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ThumbsUp, ExternalLink } from 'lucide-react';
+import { Loader2, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface RecommendedProjectsProps {
   skills: string[];
@@ -16,8 +17,10 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   skills,
   onSelectProject
 }) => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<ProjectSuggestion[]>([]);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -40,6 +43,33 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
 
     fetchRecommendations();
   }, [skills]);
+
+  const handleFeedback = async (projectId: string, isPositive: boolean) => {
+    try {
+      await submitProjectFeedback(projectId, {
+        isPositive,
+        timestamp: new Date().toISOString(),
+        skills
+      });
+      
+      setFeedbackSubmitted((prev) => ({
+        ...prev,
+        [projectId]: true
+      }));
+      
+      toast({
+        title: "Feedback received",
+        description: "Thank you for your feedback! It helps us improve recommendations.",
+      });
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -101,17 +131,46 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
                 View Details
               </Button>
               
-              {project.sourceCode?.githubUrl && (
-                <a 
-                  href={project.sourceCode.githubUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-primary hover:underline"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  GitHub
-                </a>
-              )}
+              <div className="flex gap-2">
+                {feedbackSubmitted[project.id] ? (
+                  <span className="text-sm text-muted-foreground">Thanks for your feedback!</span>
+                ) : (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-full text-green-500 hover:text-green-600 hover:bg-green-100"
+                      onClick={() => handleFeedback(project.id, true)}
+                      title="This recommendation is helpful"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      <span className="sr-only">Helpful</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-100"
+                      onClick={() => handleFeedback(project.id, false)}
+                      title="This recommendation is not helpful"
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                      <span className="sr-only">Not helpful</span>
+                    </Button>
+                  </>
+                )}
+                
+                {project.sourceCode?.githubUrl && (
+                  <a 
+                    href={project.sourceCode.githubUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    GitHub
+                  </a>
+                )}
+              </div>
             </CardFooter>
           </Card>
         ))}
