@@ -1,3 +1,4 @@
+
 import { AIConfigState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -10,14 +11,29 @@ interface ResearchPaperResponse {
   error?: string;
 }
 
+interface ProjectContext {
+  description?: string;
+  skills?: string[];
+}
+
 export const generateResearchPaper = async (
   topic: string, 
-  aiConfig: AIConfigState
+  aiConfig: AIConfigState,
+  projectContext?: ProjectContext
 ): Promise<ResearchPaperResponse> => {
   try {
     // Try OpenAI first if enabled
     if (aiConfig.openai.enabled && aiConfig.openai.apiKey) {
       try {
+        // Enhance the prompt with project context if available
+        const enhancedPrompt = projectContext
+          ? `Generate a research paper about ${topic}. 
+             Project context: ${projectContext.description || ''}
+             Technical skills involved: ${projectContext.skills?.join(', ') || ''}
+             Focus on recent developments, technical aspects, and practical applications that would be 
+             relevant for someone working on this specific project.`
+          : `Generate a research paper about ${topic}. Focus on recent developments, technical aspects, and practical applications.`;
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -33,7 +49,7 @@ export const generateResearchPaper = async (
               },
               {
                 role: 'user',
-                content: `Generate a research paper about ${topic}. Focus on recent developments, technical aspects, and practical applications.`
+                content: enhancedPrompt
               }
             ],
             temperature: 0.7,
@@ -94,6 +110,16 @@ export const generateResearchPaper = async (
     // Try Gemini if enabled
     if (aiConfig.gemini.enabled && aiConfig.gemini.apiKey) {
       try {
+        // Enhance the prompt with project context if available
+        const enhancedPrompt = projectContext
+          ? `Generate a research paper about ${topic}. 
+             Project context: ${projectContext.description || ''}
+             Technical skills involved: ${projectContext.skills?.join(', ') || ''}
+             Include a title, abstract, main content with sections, and references. 
+             Focus on recent developments, technical aspects, and practical applications that would be 
+             relevant for someone working on this specific project.`
+          : `Generate a research paper about ${topic}. Include a title, abstract, main content with sections, and references. Focus on recent developments, technical aspects, and practical applications.`;
+
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${aiConfig.gemini.apiKey}`, {
           method: 'POST',
           headers: {
@@ -104,7 +130,7 @@ export const generateResearchPaper = async (
               {
                 parts: [
                   {
-                    text: `Generate a research paper about ${topic}. Include a title, abstract, main content with sections, and references. Focus on recent developments, technical aspects, and practical applications.`
+                    text: enhancedPrompt
                   }
                 ]
               }

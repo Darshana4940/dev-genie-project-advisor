@@ -17,15 +17,19 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, FileText, BookOpen, Link } from 'lucide-react';
+import { Loader2, FileText, BookOpen, Link as LinkIcon, BookMarked } from 'lucide-react';
 
 interface ResearchPaperDialogProps {
   projectTitle?: string;
+  projectDescription?: string; // Added project description
+  projectSkills?: string[]; // Added project skills
   aiConfig: AIConfigState;
 }
 
 const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({ 
   projectTitle = '',
+  projectDescription = '', // Default to empty string
+  projectSkills = [], // Default to empty array
   aiConfig
 }) => {
   const { toast } = useToast();
@@ -39,6 +43,13 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
     content: string;
     references: string[];
   } | null>(null);
+
+  // Set the topic when the project title changes
+  React.useEffect(() => {
+    if (projectTitle) {
+      setTopic(projectTitle);
+    }
+  }, [projectTitle]);
 
   const generatePaper = async () => {
     if (!topic.trim()) {
@@ -62,7 +73,15 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
 
     setIsGenerating(true);
     try {
-      const data = await generateResearchPaper(topic, aiConfig);
+      // Pass additional context about the project to generate a more relevant paper
+      const data = await generateResearchPaper(
+        topic, 
+        aiConfig, 
+        {
+          description: projectDescription,
+          skills: projectSkills
+        }
+      );
       
       if (data.error) {
         throw new Error(data.error);
@@ -85,7 +104,7 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
-          <FileText className="h-4 w-4" />
+          <BookMarked className="h-4 w-4" />
           <span>Research Papers</span>
         </Button>
       </DialogTrigger>
@@ -160,7 +179,7 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
                         <ul className="space-y-2">
                           {paperData.references.map((ref, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <Link className="h-4 w-4 mt-1 flex-shrink-0" />
+                              <LinkIcon className="h-4 w-4 mt-1 flex-shrink-0" />
                               <span>{ref}</span>
                             </li>
                           ))}

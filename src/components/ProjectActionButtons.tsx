@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AIConfigState, ProjectSuggestion } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Bookmark, FileText, MessageCircle, Share2 } from 'lucide-react';
+import { Bookmark, FileText, MessageCircle, Share2, BookMarked } from 'lucide-react';
 import ResearchPaperDialog from './ResearchPaperDialog';
 import ProjectReviewDialog from './ProjectReviewDialog';
 import { toJson } from '@/utils/typeUtils';
@@ -95,7 +95,12 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
         <span>Save Project</span>
       </Button>
 
-      <ResearchPaperDialog projectTitle={project.title} aiConfig={aiConfig} />
+      <ResearchPaperDialog 
+        projectTitle={project.title} 
+        projectDescription={project.description}
+        projectSkills={project.skills} 
+        aiConfig={aiConfig} 
+      />
 
       <ProjectReviewDialog project={project} />
 
