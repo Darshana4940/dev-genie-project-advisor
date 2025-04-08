@@ -43,6 +43,7 @@ export interface ProjectFeedback {
   timestamp: string;
   comment?: string;
   skills: string[];
+  projectId?: string; // Added projectId to the interface
 }
 
 export interface ProjectSuggestion {
@@ -58,6 +59,7 @@ export interface ProjectSuggestion {
   reviews?: ProjectReview[];
   skillMatchScore?: number;
   feedback?: ProjectFeedback[];
+  isProjectFeedback?: boolean; // Flag to identify feedback entries
 }
 
 export interface AIModelConfig {

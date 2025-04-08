@@ -1,4 +1,3 @@
-
 import { AIConfigState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -239,30 +238,46 @@ export const getRecommendedProjects = async (skills: string[]) => {
   return mockRecommendations(skills);
 };
 
-// New function to submit project feedback
+// Modified function to submit project feedback
 export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
   try {
+    // Create a feedback object that includes the projectId
+    const feedbackData = {
+      projectId,
+      ...feedback,
+    };
+    
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) {
-      // If no authenticated user, store feedback anonymously
+    // Create a project object with feedback included
+    const projectWithFeedback = {
+      id: `feedback-${projectId}-${Date.now()}`,
+      title: `Feedback for project ${projectId}`,
+      description: feedback.comment || `Feedback submitted: ${feedback.isPositive ? 'Positive' : 'Negative'}`,
+      feedback: feedbackData,
+      isProjectFeedback: true // Flag to identify this as feedback
+    };
+    
+    // Store in saved_projects table
+    if (user) {
+      // If authenticated, associate feedback with user
       const { error } = await supabase
-        .from('project_feedback')
+        .from('saved_projects')
         .insert({
-          project_id: projectId,
-          feedback_data: toJson(feedback)
+          user_id: user.id,
+          project_data: toJson(projectWithFeedback)
         });
       
       if (error) throw error;
     } else {
-      // If authenticated, associate feedback with user
+      // For anonymous users, create a temporary system user ID
+      const tempUserId = 'system-feedback';
       const { error } = await supabase
-        .from('project_feedback')
+        .from('saved_projects')
         .insert({
-          project_id: projectId,
-          user_id: user.id,
-          feedback_data: toJson(feedback)
+          user_id: tempUserId,
+          project_data: toJson(projectWithFeedback)
         });
       
       if (error) throw error;
