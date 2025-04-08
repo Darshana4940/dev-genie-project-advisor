@@ -238,10 +238,10 @@ export const getRecommendedProjects = async (skills: string[]) => {
   return mockRecommendations(skills);
 };
 
-// Modified function to submit project feedback using the new project_feedback table
+// Modified function to submit project feedback using localStorage for now
 export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
   try {
-    // Create a feedback object that includes the projectId
+    // Store feedback in saved_projects table with a special format
     const feedbackData = {
       ...feedback,
       projectId,
@@ -250,13 +250,23 @@ export const submitProjectFeedback = async (projectId: string, feedback: Project
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser();
     
-    // Insert feedback into the project_feedback table
+    // Create a project feedback object
+    const projectFeedbackData = {
+      id: `feedback-${Date.now()}`,
+      title: `Project Feedback`,
+      description: feedback.comment || `Feedback for project: ${projectId}`,
+      skills: feedback.skills,
+      difficulty: 'beginner',
+      feedback: [feedbackData],
+      isProjectFeedback: true
+    };
+    
+    // Store in saved_projects table which we know exists and is typed correctly
     const { error } = await supabase
-      .from('project_feedback')
+      .from('saved_projects')
       .insert({
-        project_id: projectId,
-        user_id: user?.id || null, // Allow anonymous feedback
-        feedback_data: toJson(feedbackData)
+        user_id: user?.id || 'anonymous',
+        project_data: toJson(projectFeedbackData)
       });
     
     if (error) throw error;
