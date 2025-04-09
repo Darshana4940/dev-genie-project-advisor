@@ -28,6 +28,7 @@ import { mockProjects } from '@/data/mockData';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import AIConfigDialog from '@/components/AIConfigDialog';
 import ProjectDetailView from '@/components/ProjectDetailView';
+import { getRecommendedProjects } from '@/services/aiResearchService';
 
 const ProjectAdvisor = () => {
   const { toast } = useToast();

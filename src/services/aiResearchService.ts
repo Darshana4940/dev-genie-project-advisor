@@ -1,4 +1,5 @@
-import { AIConfigState, ProjectSuggestion, ResearchPaper } from '@/types';
+
+import { AIConfigState, ProjectSuggestion, ResearchPaper, ProjectResource } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
 
