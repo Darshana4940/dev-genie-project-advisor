@@ -20,6 +20,7 @@ interface ProjectFeedback {
   timestamp: string;
   skills: string[];
   comment?: string;
+  projectId: string;
 }
 
 export const generateResearchPaper = async (
@@ -238,12 +239,12 @@ export const getRecommendedProjects = async (skills: string[]) => {
   return mockRecommendations(skills);
 };
 
-// Modified function to submit project feedback using localStorage for now
 export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
   try {
     // Store feedback in saved_projects table with a special format
     const feedbackData = {
       ...feedback,
+      projectId,
     };
     
     // Get the current user
