@@ -1,3 +1,4 @@
+
 export interface Skill {
   id: string;
   name: string;
@@ -18,6 +19,7 @@ export interface ProjectReview {
   rating: number;
   comment: string;
   date: string;
+  projectId?: string;
 }
 
 export interface ProjectResource {
@@ -48,6 +50,41 @@ export interface ProjectSuggestion {
   sourceCode?: ProjectSourceCode;
   reviews?: ProjectReview[];
   skillMatchScore?: number;
+  researchPaper?: ResearchPaper;
+}
+
+export interface ResearchPaper {
+  title: string;
+  authors: string[];
+  institution?: string;
+  email?: string;
+  abstract: string;
+  keywords: string[];
+  introduction: string;
+  aims: string[];
+  methodology: {
+    overview: string;
+    systemAnalysis: string;
+    requirements?: {
+      software: string[];
+      hardware: string[];
+    };
+    implementation: string;
+  };
+  modules: {
+    name: string;
+    description: string;
+  }[];
+  testing: {
+    process: string;
+    results: string;
+  };
+  futureScope: string;
+  conclusion: string;
+  references: {
+    text: string;
+    url?: string;
+  }[];
 }
 
 export interface AIModelConfig {

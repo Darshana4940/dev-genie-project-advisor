@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { AIConfigState, ProjectSuggestion } from '@/types';
@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Bookmark, FileText, MessageCircle, Share2, BookMarked } from 'lucide-react';
 import ResearchPaperDialog from './ResearchPaperDialog';
 import ProjectReviewDialog from './ProjectReviewDialog';
+import ResearchPaperView from './ResearchPaperView';
 import { toJson } from '@/utils/typeUtils';
 
 interface ProjectActionButtonsProps {
@@ -23,6 +24,7 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [researchPaperOpen, setResearchPaperOpen] = useState(false);
 
   const handleSaveProject = async () => {
     if (!user) {
@@ -83,6 +85,10 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
     }
   };
 
+  const openResearchPaper = () => {
+    setResearchPaperOpen(true);
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button
@@ -102,6 +108,16 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
         aiConfig={aiConfig} 
       />
 
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2"
+        onClick={openResearchPaper}
+      >
+        <FileText className="h-4 w-4" />
+        <span>Research Paper</span>
+      </Button>
+
       <ProjectReviewDialog project={project} />
 
       <Button
@@ -113,6 +129,13 @@ const ProjectActionButtons: React.FC<ProjectActionButtonsProps> = ({
         <Share2 className="h-4 w-4" />
         <span>Share</span>
       </Button>
+
+      <ResearchPaperView
+        project={project}
+        open={researchPaperOpen}
+        onOpenChange={setResearchPaperOpen}
+        aiConfig={aiConfig}
+      />
     </div>
   );
 };

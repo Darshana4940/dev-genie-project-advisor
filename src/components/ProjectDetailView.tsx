@@ -13,8 +13,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AIConfigState, ProjectSuggestion, ProjectDetails } from '@/types';
-import { Loader2, FileText, GitBranch, Map, Code } from 'lucide-react';
+import { Loader2, FileText, GitBranch, Map, Code, BookMarked } from 'lucide-react';
 import ProjectSourceCode from '@/components/ProjectSourceCode';
+import ResearchPaperView from '@/components/ResearchPaperView';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectDetailViewProps {
@@ -41,6 +42,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     pseudoCode: ''
   });
   const [sourceCodeOpen, setSourceCodeOpen] = useState(false);
+  const [researchPaperOpen, setResearchPaperOpen] = useState(false);
   const [activeAI, setActiveAI] = useState<string>('');
 
   useEffect(() => {
@@ -647,16 +649,26 @@ function optimizePerformance(component) {
               
               <Separator />
               
-              <div className="flex justify-between pt-4">
+              <div className="flex flex-wrap justify-between gap-2 pt-4">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Close
                 </Button>
-                <Button 
-                  onClick={() => setSourceCodeOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  View Source Code & Resources
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setResearchPaperOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <BookMarked className="h-4 w-4" />
+                    Research Paper
+                  </Button>
+                  <Button 
+                    onClick={() => setSourceCodeOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    View Source Code & Resources
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -664,11 +676,19 @@ function optimizePerformance(component) {
       </Sheet>
 
       {project && (
-        <ProjectSourceCode
-          project={project}
-          open={sourceCodeOpen}
-          onOpenChange={setSourceCodeOpen}
-        />
+        <>
+          <ProjectSourceCode
+            project={project}
+            open={sourceCodeOpen}
+            onOpenChange={setSourceCodeOpen}
+          />
+          <ResearchPaperView
+            project={project}
+            open={researchPaperOpen}
+            onOpenChange={setResearchPaperOpen}
+            aiConfig={aiConfig}
+          />
+        </>
       )}
     </>
   );
