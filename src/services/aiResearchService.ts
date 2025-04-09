@@ -1,3 +1,4 @@
+
 import { AIConfigState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -13,14 +14,6 @@ interface ResearchPaperResponse {
 interface ProjectContext {
   description?: string;
   skills?: string[];
-}
-
-interface ProjectFeedback {
-  isPositive: boolean;
-  timestamp: string;
-  skills: string[];
-  comment?: string;
-  projectId: string;
 }
 
 export const generateResearchPaper = async (
@@ -237,45 +230,6 @@ export const getRecommendedProjects = async (skills: string[]) => {
   // This would typically fetch from a backend
   // For now, return mock data based on skills
   return mockRecommendations(skills);
-};
-
-export const submitProjectFeedback = async (projectId: string, feedback: ProjectFeedback) => {
-  try {
-    // Store feedback in saved_projects table with a special format
-    const feedbackData = {
-      ...feedback,
-      projectId,
-    };
-    
-    // Get the current user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Create a project feedback object
-    const projectFeedbackData = {
-      id: `feedback-${Date.now()}`,
-      title: `Project Feedback`,
-      description: feedback.comment || `Feedback for project: ${projectId}`,
-      skills: feedback.skills,
-      difficulty: 'beginner',
-      feedback: [feedbackData],
-      isProjectFeedback: true
-    };
-    
-    // Store in saved_projects table which we know exists and is typed correctly
-    const { error } = await supabase
-      .from('saved_projects')
-      .insert({
-        user_id: user?.id || 'anonymous',
-        project_data: toJson(projectFeedbackData)
-      });
-    
-    if (error) throw error;
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Error submitting project feedback:", error);
-    throw error;
-  }
 };
 
 const mockRecommendations = (skills: string[]) => {

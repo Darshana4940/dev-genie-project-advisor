@@ -1,4 +1,3 @@
-
 export interface Skill {
   id: string;
   name: string;
@@ -37,15 +36,6 @@ export interface ProjectSourceCode {
   relatedResources: ProjectResource[];
 }
 
-export interface ProjectFeedback {
-  userId?: string;
-  isPositive: boolean;
-  timestamp: string;
-  comment?: string;
-  skills: string[];
-  projectId: string; // Required projectId field
-}
-
 export interface ProjectSuggestion {
   id: string;
   title: string;
@@ -58,8 +48,6 @@ export interface ProjectSuggestion {
   sourceCode?: ProjectSourceCode;
   reviews?: ProjectReview[];
   skillMatchScore?: number;
-  feedback?: ProjectFeedback[];
-  isProjectFeedback?: boolean; // Flag to identify feedback entries
 }
 
 export interface AIModelConfig {
