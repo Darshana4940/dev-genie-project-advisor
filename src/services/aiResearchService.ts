@@ -219,7 +219,12 @@ export const saveProjectToSupabase = async (project: any, userId: string) => {
 };
 
 export const getRecommendedProjects = async (skills: string[]) => {
-  return mockRecommendations(skills);
+  if (!skills || skills.length === 0) {
+    return [];
+  }
+  
+  console.log("Generating project recommendations for skills:", skills);
+  return generateProjectSuggestions(skills);
 };
 
 export const generateProjectResearchPaper = async (
@@ -345,7 +350,7 @@ export const generateProjectResearchPaper = async (
                         "systemAnalysis": "System analysis text",
                         "requirements": {
                           "software": ["software1", "software2"],
-                          "hardware": ["hardware1", "hardware2"]
+                          "hardware": ["hardware1", hardware2"]
                         },
                         "implementation": "Implementation text"
                       },
@@ -472,6 +477,450 @@ const createFallbackResearchPaper = (project: ProjectSuggestion): ResearchPaper 
       { text: "Brown, R. (2023). Performance Optimization Techniques for Modern Applications. Tech Journal, 18(3), 45-62." }
     ]
   };
+};
+
+const generateProjectSuggestions = (skills: string[]): ProjectSuggestion[] => {
+  const normalizedSkills = skills.map(skill => skill.toLowerCase());
+  
+  const frontendSkills = ['react', 'angular', 'vue', 'html', 'css', 'javascript', 'typescript', 'tailwind', 'bootstrap'];
+  const backendSkills = ['node', 'express', 'django', 'flask', 'php', 'laravel', 'ruby', 'rails', 'spring', 'java'];
+  const mobileSkills = ['react native', 'flutter', 'swift', 'kotlin', 'android', 'ios'];
+  const aiMlSkills = ['python', 'tensorflow', 'pytorch', 'machine learning', 'ai', 'data science', 'nlp'];
+  const devopsSkills = ['docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci/cd', 'jenkins', 'github actions'];
+  
+  const hasFrontend = normalizedSkills.some(skill => frontendSkills.some(fs => skill.includes(fs)));
+  const hasBackend = normalizedSkills.some(skill => backendSkills.some(bs => skill.includes(bs)));
+  const hasMobile = normalizedSkills.some(skill => mobileSkills.some(ms => skill.includes(ms)));
+  const hasAiMl = normalizedSkills.some(skill => aiMlSkills.some(ams => skill.includes(ams)));
+  const hasDevOps = normalizedSkills.some(skill => devopsSkills.some(dos => skill.includes(dos)));
+  
+  const projectSuggestions: ProjectSuggestion[] = [];
+  
+  if (hasFrontend && hasBackend) {
+    projectSuggestions.push(createFullStackProject(skills));
+  }
+  
+  if (hasFrontend) {
+    projectSuggestions.push(createFrontendProject(skills));
+  }
+  
+  if (hasBackend) {
+    projectSuggestions.push(createBackendProject(skills));
+  }
+  
+  if (hasMobile) {
+    projectSuggestions.push(createMobileProject(skills));
+  }
+  
+  if (hasAiMl) {
+    projectSuggestions.push(createAiMlProject(skills));
+  }
+  
+  if (hasDevOps) {
+    projectSuggestions.push(createDevOpsProject(skills));
+  }
+  
+  projectSuggestions.push(...createGeneralProjects(skills));
+  
+  const uniqueProjects = Array.from(new Map(projectSuggestions.map(project => 
+    [project.title, project])).values());
+  
+  uniqueProjects.forEach(project => {
+    const matchingSkills = project.skills.filter(skill => 
+      normalizedSkills.some(userSkill => skill.toLowerCase().includes(userSkill))
+    );
+    project.skillMatchScore = matchingSkills.length / project.skills.length;
+  });
+  
+  uniqueProjects.sort((a, b) => (b.skillMatchScore || 0) - (a.skillMatchScore || 0));
+  
+  return uniqueProjects;
+};
+
+const createFullStackProject = (skills: string[]): ProjectSuggestion => {
+  const fullStackProjects = [
+    {
+      title: "E-commerce Platform",
+      description: "Build a full-featured e-commerce platform with user authentication, product catalog, shopping cart, and payment integration.",
+      difficulty: "advanced" as const,
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Social Media Dashboard",
+      description: "Create a social media management dashboard with analytics, scheduled posting, and content management features.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Learning Management System",
+      description: "Develop an LMS with course creation, student enrollment, assignment submission, and progress tracking.",
+      difficulty: "advanced" as const,
+      timeEstimate: "3-4 months"
+    },
+    {
+      title: "Project Management Tool",
+      description: "Build a project management application with task tracking, team collaboration, and reporting features.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Real Estate Listing Platform",
+      description: "Create a platform for property listings with search filters, map integration, and inquiry management.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-3 months"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(fullStackProjects), skills);
+};
+
+const createFrontendProject = (skills: string[]): ProjectSuggestion => {
+  const frontendProjects = [
+    {
+      title: "Interactive Data Visualization Dashboard",
+      description: "Create an interactive dashboard to visualize complex datasets using charts, graphs, and filterable views.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Portfolio Website with Animations",
+      description: "Design a portfolio website with advanced animations, transitions, and interactive elements.",
+      difficulty: "beginner" as const,
+      timeEstimate: "1-3 weeks"
+    },
+    {
+      title: "Weather Application with Geolocation",
+      description: "Build a weather app that uses geolocation to show current weather and forecasts with beautiful visualizations.",
+      difficulty: "beginner" as const,
+      timeEstimate: "1-2 weeks"
+    },
+    {
+      title: "Recipe Finder with Filtering",
+      description: "Create a recipe search application with advanced filtering options, favorites saving, and meal planning.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Interactive Quiz Application",
+      description: "Develop a quiz app with multiple question types, timer, score tracking, and result sharing.",
+      difficulty: "beginner" as const,
+      timeEstimate: "1-3 weeks"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(frontendProjects), skills);
+};
+
+const createBackendProject = (skills: string[]): ProjectSuggestion => {
+  const backendProjects = [
+    {
+      title: "RESTful API with Authentication",
+      description: "Build a comprehensive RESTful API with user authentication, role-based access control, and data validation.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Real-time Chat Server",
+      description: "Create a scalable real-time chat server with private messaging, group chats, and message persistence.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Content Management System API",
+      description: "Develop a headless CMS API with content creation, asset management, and versioning capabilities.",
+      difficulty: "advanced" as const,
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Payment Processing Service",
+      description: "Build a payment processing service that integrates with popular payment gateways and handles subscriptions.",
+      difficulty: "advanced" as const,
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Data Processing Pipeline",
+      description: "Create a data processing pipeline for collecting, transforming, and storing data from multiple sources.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(backendProjects), skills);
+};
+
+const createMobileProject = (skills: string[]): ProjectSuggestion => {
+  const mobileProjects = [
+    {
+      title: "Fitness Tracking App",
+      description: "Build a mobile app for tracking workouts, setting goals, and visualizing progress over time.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "4-8 weeks"
+    },
+    {
+      title: "Travel Companion App",
+      description: "Create a travel app with itinerary planning, place recommendations, and offline map capabilities.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "6-10 weeks"
+    },
+    {
+      title: "Expense Tracker with Budgeting",
+      description: "Develop a personal finance app for tracking expenses, creating budgets, and generating spending reports.",
+      difficulty: "beginner" as const,
+      timeEstimate: "3-6 weeks"
+    },
+    {
+      title: "Language Learning Flashcards",
+      description: "Build a mobile flashcard app for language learning with spaced repetition and pronunciation practice.",
+      difficulty: "beginner" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Augmented Reality Measurement Tool",
+      description: "Create an AR app that can measure real-world objects using the device's camera and AR capabilities.",
+      difficulty: "advanced" as const,
+      timeEstimate: "6-12 weeks"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(mobileProjects), skills);
+};
+
+const createAiMlProject = (skills: string[]): ProjectSuggestion => {
+  const aiMlProjects = [
+    {
+      title: "Sentiment Analysis Dashboard",
+      description: "Build a dashboard that analyzes sentiment from social media posts, reviews, or any text content.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "3-6 weeks"
+    },
+    {
+      title: "Image Classification Web App",
+      description: "Create a web app that can classify uploaded images using pre-trained or custom machine learning models.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Recommendation Engine",
+      description: "Develop a recommendation system that suggests products, content, or connections based on user behavior.",
+      difficulty: "advanced" as const,
+      timeEstimate: "4-8 weeks"
+    },
+    {
+      title: "Natural Language Chatbot",
+      description: "Build a chatbot using natural language processing to understand and respond to user queries.",
+      difficulty: "advanced" as const,
+      timeEstimate: "5-10 weeks"
+    },
+    {
+      title: "Anomaly Detection System",
+      description: "Create a system that can detect anomalies in time-series data, such as unusual transactions or sensor readings.",
+      difficulty: "advanced" as const,
+      timeEstimate: "4-8 weeks"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(aiMlProjects), skills);
+};
+
+const createDevOpsProject = (skills: string[]): ProjectSuggestion => {
+  const devOpsProjects = [
+    {
+      title: "CI/CD Pipeline Automation",
+      description: "Set up a complete CI/CD pipeline for automated testing, building, and deployment of applications.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Infrastructure as Code Project",
+      description: "Create infrastructure as code templates for provisioning and managing cloud resources.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Monitoring Dashboard",
+      description: "Build a comprehensive monitoring dashboard for tracking application performance, server health, and alerts.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Container Orchestration System",
+      description: "Set up a containerized application environment with orchestration for scaling and management.",
+      difficulty: "advanced" as const,
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Automated Backup System",
+      description: "Create an automated backup system with scheduling, verification, and recovery capabilities.",
+      difficulty: "beginner" as const,
+      timeEstimate: "1-3 weeks"
+    }
+  ];
+  
+  return createProjectFromTemplate(selectRandom(devOpsProjects), skills);
+};
+
+const createGeneralProjects = (skills: string[]): ProjectSuggestion[] => {
+  const generalProjects = [
+    {
+      title: "Personal Blog Platform",
+      description: "Create a blog platform with content management, commenting, and analytics features.",
+      difficulty: "beginner" as const,
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Task Management App",
+      description: "Build a task management application with features like categories, priorities, and reminders.",
+      difficulty: "beginner" as const,
+      timeEstimate: "1-3 weeks"
+    },
+    {
+      title: "Online Resume Builder",
+      description: "Develop a tool that helps users create professional resumes with customizable templates.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Digital Cookbook",
+      description: "Build a digital cookbook application where users can save, categorize, and share recipes.",
+      difficulty: "beginner" as const,
+      timeEstimate: "2-3 weeks"
+    },
+    {
+      title: "Event Planning Tool",
+      description: "Create an event planning application with guest lists, scheduling, and RSVP management.",
+      difficulty: "intermediate" as const,
+      timeEstimate: "3-5 weeks"
+    }
+  ];
+  
+  return generalProjects.map(project => createProjectFromTemplate(project, skills)).slice(0, 3);
+};
+
+const createProjectFromTemplate = (
+  template: { 
+    title: string; 
+    description: string; 
+    difficulty: "beginner" | "intermediate" | "advanced"; 
+    timeEstimate: string 
+  }, 
+  userSkills: string[]
+): ProjectSuggestion => {
+  const normalizedUserSkills = userSkills.map(skill => skill.toLowerCase());
+  
+  const relevantSkills = selectRelevantSkills(normalizedUserSkills, template.title, template.difficulty);
+  
+  const id = `project-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  
+  return {
+    id,
+    title: template.title,
+    description: template.description,
+    difficulty: template.difficulty,
+    skills: relevantSkills,
+    timeEstimate: template.timeEstimate,
+    resources: generateRelevantResources(relevantSkills),
+    tags: generateRelevantTags(template.title, template.description),
+    sourceCode: {
+      githubUrl: Math.random() > 0.3 ? 'https://github.com/example/repo' : undefined,
+      relatedResources: generateRelevantResources(relevantSkills)
+    }
+  };
+};
+
+const selectRelevantSkills = (userSkills: string[], projectTitle: string, difficulty: string): string[] => {
+  const beginnerSkills = ['HTML', 'CSS', 'JavaScript', 'Bootstrap', 'jQuery'];
+  const intermediateSkills = ['React', 'Angular', 'Vue.js', 'Node.js', 'Express', 'MongoDB', 'Firebase'];
+  const advancedSkills = ['TypeScript', 'GraphQL', 'Docker', 'Kubernetes', 'AWS', 'TensorFlow', 'PyTorch'];
+  
+  let selectedSkills = userSkills.slice(0, Math.min(5, userSkills.length));
+  
+  if (selectedSkills.length < 3) {
+    if (projectTitle.toLowerCase().includes('mobile')) {
+      selectedSkills.push('React Native', 'Flutter', 'Swift');
+    } else if (projectTitle.toLowerCase().includes('ai') || projectTitle.toLowerCase().includes('ml')) {
+      selectedSkills.push('Python', 'TensorFlow', 'Data Science');
+    } else if (projectTitle.toLowerCase().includes('dashboard')) {
+      selectedSkills.push('D3.js', 'Chart.js', 'Data Visualization');
+    }
+    
+    if (difficulty === 'beginner' && selectedSkills.length < 4) {
+      selectedSkills = [...selectedSkills, ...selectRandomFromArray(beginnerSkills, 2)];
+    } else if (difficulty === 'intermediate' && selectedSkills.length < 4) {
+      selectedSkills = [...selectedSkills, ...selectRandomFromArray(intermediateSkills, 2)];
+    } else if (difficulty === 'advanced' && selectedSkills.length < 4) {
+      selectedSkills = [...selectedSkills, ...selectRandomFromArray(advancedSkills, 2)];
+    }
+  }
+  
+  return Array.from(new Set(selectedSkills.map(skill => 
+    skill.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
+  )));
+};
+
+const generateRelevantResources = (skills: string[]): ProjectResource[] => {
+  const resourceTypes: Array<'tutorial' | 'documentation' | 'github' | 'article'> = ['tutorial', 'documentation', 'github', 'article'];
+  const resources: ProjectResource[] = [];
+  
+  skills.slice(0, 3).forEach(skill => {
+    const type = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+    const title = getResourceTitle(type, skill);
+    
+    resources.push({
+      title,
+      url: 'https://example.com/resource',
+      type
+    });
+  });
+  
+  resources.push({
+    title: 'Project Planning Guide',
+    url: 'https://example.com/planning',
+    type: 'article'
+  });
+  
+  return resources;
+};
+
+const getResourceTitle = (type: string, skill: string): string => {
+  switch (type) {
+    case 'tutorial':
+      return `${skill} Beginner to Advanced Tutorial`;
+    case 'documentation':
+      return `Official ${skill} Documentation`;
+    case 'github':
+      return `${skill} Example Repository`;
+    case 'article':
+      return `Best Practices for ${skill} Development`;
+    default:
+      return `${skill} Learning Resource`;
+  }
+};
+
+const generateRelevantTags = (title: string, description: string): string[] => {
+  const allTags = [
+    'Web Development', 'Mobile App', 'AI/ML', 'Data Science', 'IoT', 
+    'Blockchain', 'Game Development', 'DevOps', 'Cloud Computing',
+    'Cybersecurity', 'AR/VR', 'Automation', 'UI/UX', 'Microservices',
+    'Frontend', 'Backend', 'Full Stack', 'API Development'
+  ];
+  
+  const content = (title + ' ' + description).toLowerCase();
+  const relevantTags = allTags.filter(tag => content.includes(tag.toLowerCase()));
+  
+  if (relevantTags.length > 0) {
+    return selectRandomFromArray(relevantTags, Math.min(3, relevantTags.length));
+  } else {
+    return selectRandomFromArray(allTags, 3);
+  }
+};
+
+const selectRandomFromArray = <T>(array: T[], count: number): T[] => {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
+const selectRandom = <T>(array: T[]): T => {
+  return array[Math.floor(Math.random() * array.length)];
 };
 
 const mockRecommendations = (skills: string[]) => {

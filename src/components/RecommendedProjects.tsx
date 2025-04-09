@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ThumbsUp, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface RecommendedProjectsProps {
   skills: string[];
@@ -18,6 +19,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<ProjectSuggestion[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -33,13 +35,18 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
         setRecommendations(data);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
+        toast({
+          title: "Error fetching recommendations",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchRecommendations();
-  }, [skills]);
+  }, [skills, toast]);
 
   if (loading) {
     return (

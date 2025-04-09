@@ -173,59 +173,6 @@ const ProjectAdvisor = () => {
     return resources;
   };
 
-  const generateRandomProject = (id: string): ProjectSuggestion => {
-    const projectTitles = [
-      'AI-powered Task Manager', 'IoT Home Monitoring System', 'Blockchain Voting Platform',
-      'AR Shopping Experience', 'Voice-Controlled Smart Assistant', 'Personalized Learning App',
-      'Real-time Collaboration Tool', 'Cryptocurrency Portfolio Tracker', 'Mental Health Wellness App',
-      'Social Media Content Scheduler', 'E-commerce Recommendation Engine', 'Decentralized File Storage',
-      'Augmented Reality Navigation', 'Peer-to-peer Ridesharing Platform', 'Language Learning Gamification',
-      'Recipe Recommendation System', 'Remote Team Collaboration Platform', 'Personal Finance Tracker',
-      'Virtual Study Group Platform', 'Cross-platform Mobile Game', 'Job Application Tracker',
-      'Smart City Traffic Management', 'Virtual Reality Training Simulator', 'Healthcare Patient Portal',
-      'Custom CRM Solution', 'Music Recommendation System', 'Travel Itinerary Planner',
-      'Project Management Dashboard', 'Sustainable Living Tracker', 'Automated Code Reviewer'
-    ];
-
-    const descriptions = [
-      'A comprehensive solution that helps users streamline their workflow and boost productivity.',
-      'An innovative platform that leverages cutting-edge technology to solve real-world problems.',
-      'A user-friendly application designed to simplify complex processes and improve user experience.',
-      'A powerful tool that provides data-driven insights and actionable recommendations.',
-      'A next-generation system that combines multiple technologies for a seamless experience.',
-      'A scalable solution that addresses growing needs in the digital landscape.',
-      'A versatile application that caters to diverse user requirements across different domains.',
-      'A feature-rich platform that offers extensive customization and integration capabilities.',
-      'An intelligent system that learns from user behavior to deliver personalized experiences.',
-      'A robust application built with security and performance in mind.'
-    ];
-
-    const title = projectTitles[Math.floor(Math.random() * projectTitles.length)];
-    const baseDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
-    const specificDescription = `This ${title.toLowerCase()} project allows users to ${
-      Math.random() > 0.5 ? 'efficiently manage' : 'seamlessly interact with'
-    } ${
-      Math.random() > 0.5 ? 'data' : 'content'
-    } through a ${
-      Math.random() > 0.5 ? 'modern interface' : 'intuitive UI'
-    }.`;
-
-    return {
-      id,
-      title,
-      description: `${baseDescription} ${specificDescription}`,
-      difficulty: ['beginner', 'intermediate', 'advanced'][Math.floor(Math.random() * 3)] as 'beginner' | 'intermediate' | 'advanced',
-      skills: getRandomSkills(),
-      timeEstimate: getRandomTimeEstimate(),
-      resources: getRandomResources(),
-      tags: getRandomTags(),
-      sourceCode: {
-        githubUrl: Math.random() > 0.3 ? 'https://github.com/example/repo' : undefined,
-        relatedResources: getRandomResources()
-      }
-    };
-  };
-
   const generateProjects = () => {
     if (skills.length === 0) {
       toast({
@@ -238,23 +185,31 @@ const ProjectAdvisor = () => {
 
     setIsGenerating(true);
 
-    setTimeout(() => {
-      const projectCount = Math.floor(Math.random() * 11) + 10; // 10-20
-      const newProjects: ProjectSuggestion[] = [];
-      
-      for (let i = 0; i < projectCount; i++) {
-        newProjects.push(generateRandomProject(`project-${Date.now()}-${i}`));
-      }
+    // Extract just the skill names to pass to the recommendation engine
+    const skillNames = skills.map(skill => skill.name);
 
-      setSuggestions(newProjects);
-      setIsGenerating(false);
-      setActiveTab('suggestions');
-      
-      toast({
-        title: "Projects Generated!",
-        description: `Found ${newProjects.length} projects matching your profile.`,
+    // Use the updated getRecommendedProjects function directly
+    getRecommendedProjects(skillNames)
+      .then(recommendations => {
+        setSuggestions(recommendations);
+        setActiveTab('suggestions');
+        
+        toast({
+          title: "Projects Generated!",
+          description: `Found ${recommendations.length} projects matching your profile.`,
+        });
+      })
+      .catch(error => {
+        console.error("Error generating projects:", error);
+        toast({
+          title: "Error generating projects",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsGenerating(false);
       });
-    }, 2000);
   };
 
   const getOverallSkillLevel = (): 'beginner' | 'intermediate' | 'advanced' => {
