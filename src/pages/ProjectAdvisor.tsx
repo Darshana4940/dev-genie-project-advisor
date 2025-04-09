@@ -189,8 +189,8 @@ const ProjectAdvisor = () => {
     // Extract just the skill names to pass to the recommendation engine
     const skillNames = skills.map(skill => skill.name);
 
-    // Use the updated getRecommendedProjects function directly
-    getRecommendedProjects(skillNames)
+    // Call getRecommendedProjects with additional user profile data
+    getRecommendedProjects(skillNames, interests, experience, goals)
       .then(recommendations => {
         setSuggestions(recommendations);
         setActiveTab('suggestions');
@@ -411,6 +411,11 @@ const ProjectAdvisor = () => {
                           <Badge variant="outline" className="bg-muted">
                             {project.timeEstimate}
                           </Badge>
+                          {project.skillMatchScore && (
+                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                              {project.skillMatchScore}% Match
+                            </Badge>
+                          )}
                         </div>
                       </CardHeader>
                       <CardContent>

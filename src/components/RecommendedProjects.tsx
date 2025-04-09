@@ -5,16 +5,22 @@ import { ProjectSuggestion } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ThumbsUp, ExternalLink } from 'lucide-react';
+import { Loader2, ThumbsUp, ExternalLink, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface RecommendedProjectsProps {
   skills: string[];
+  interests?: string;
+  experienceLevel?: string;
+  goals?: string;
   onSelectProject?: (project: ProjectSuggestion) => void;
 }
 
 const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   skills,
+  interests = '',
+  experienceLevel = 'beginner',
+  goals = '',
   onSelectProject
 }) => {
   const [loading, setLoading] = useState(true);
@@ -31,7 +37,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
 
       setLoading(true);
       try {
-        const data = await getRecommendedProjects(skills);
+        const data = await getRecommendedProjects(skills, interests, experienceLevel, goals);
         setRecommendations(data);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
@@ -46,7 +52,7 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
     };
 
     fetchRecommendations();
-  }, [skills, toast]);
+  }, [skills, interests, experienceLevel, goals, toast]);
 
   if (loading) {
     return (
@@ -96,6 +102,20 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
                   ))}
                 </div>
               </div>
+              
+              {project.tags && project.tags.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Tags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="bg-secondary/10 text-secondary">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button 
