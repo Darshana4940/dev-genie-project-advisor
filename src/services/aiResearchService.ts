@@ -415,6 +415,64 @@ export const generateResearchPaper = async (
   }
 };
 
+/**
+ * Generate a research paper specifically for a project
+ */
+export const generateProjectResearchPaper = async (
+  project: ProjectSuggestion,
+  config: AIConfigState
+): Promise<ResearchPaper> => {
+  try {
+    // For now, we'll reuse the existing generateResearchPaper function
+    // but customize it for the project context
+    const projectTitle = project.title;
+    const skillsText = project.skills.join(', ');
+    
+    const paper: ResearchPaper = {
+      title: `Research on ${projectTitle}`,
+      authors: ['AI Assistant'],
+      abstract: `This paper explores the development and implementation of a ${projectTitle} project using ${skillsText}. It discusses the methodology, architecture, implementation details, and testing procedures necessary for successful execution.`,
+      keywords: [...project.skills, ...project.tags, 'research', 'project development'],
+      introduction: `Introduction to the ${projectTitle} project, its background, significance, and the technologies involved including ${skillsText}...`,
+      aims: [
+        `To design and implement ${projectTitle}`,
+        `To apply best practices in software development using ${skillsText}`,
+        `To demonstrate the practical applications of this project`
+      ],
+      methodology: {
+        overview: `The methodology for developing ${projectTitle} involves careful planning, design, implementation, and testing...`,
+        systemAnalysis: `System analysis for ${projectTitle} includes requirement gathering, feasibility study, and system design...`,
+        requirements: {
+          software: project.skills,
+          hardware: ['Computer with adequate processing power', 'Internet connection', 'Development environment']
+        },
+        implementation: `The implementation of ${projectTitle} involves setting up the development environment, coding the core modules, and integrating the different components...`
+      },
+      modules: [
+        { name: 'Core Module', description: `The main functionality of ${projectTitle}...` },
+        { name: 'User Interface', description: `The user interface design and implementation for ${projectTitle}...` },
+        { name: 'Data Management', description: `How data is stored, retrieved, and manipulated in ${projectTitle}...` }
+      ],
+      testing: {
+        process: `The testing process for ${projectTitle} includes unit testing, integration testing, and user acceptance testing...`,
+        results: `The testing results show that ${projectTitle} meets the specified requirements and performs as expected...`
+      },
+      futureScope: `Future enhancements for ${projectTitle} could include additional features, performance optimizations, and integration with other systems...`,
+      conclusion: `The ${projectTitle} project demonstrates the successful application of ${skillsText} in creating a functional and useful solution...`,
+      references: [
+        { text: `${project.skills[0]} Documentation`, url: `https://example.com/${project.skills[0].toLowerCase()}` },
+        { text: `Best Practices for ${project.tags[0] || 'Software Development'}`, url: 'https://example.com/best-practices' },
+        { text: 'Software Design Patterns', url: 'https://example.com/design-patterns' }
+      ]
+    };
+    
+    return paper;
+  } catch (error) {
+    console.error('Error generating project research paper:', error);
+    throw new Error('Failed to generate project research paper');
+  }
+};
+
 export const getProjectDetails = async (
   project: ProjectSuggestion,
   config: AIConfigState
