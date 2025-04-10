@@ -1,3 +1,4 @@
+
 import { AIConfigState, ProjectSuggestion, ResearchPaper, ProjectResource } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -381,30 +382,31 @@ export const generateResearchPaper = async (
   try {
     // Implementation for generating research papers
     const paper: ResearchPaper = {
-      title: `Research on ${topic}`,
+      title: `Research on ${topic.split(' - Context:')[0]}`,
       authors: ['AI Assistant'],
-      abstract: `This paper explores ${topic} and its applications.`,
-      keywords: [topic, 'research', 'technology'],
-      introduction: `Introduction to ${topic}...`,
-      aims: [`To explore ${topic}`, `To analyze applications of ${topic}`],
+      abstract: `This paper explores ${topic.split(' - Context:')[0]} and its applications in modern software development.`,
+      keywords: [topic.split(' - Context:')[0], 'research', 'technology', 'software development'],
+      introduction: `Introduction to ${topic.split(' - Context:')[0]} and its significance in today's technological landscape.`,
+      aims: [`To explore ${topic.split(' - Context:')[0]}`, `To analyze applications of ${topic.split(' - Context:')[0]}`, `To provide implementation guidelines`],
       methodology: {
-        overview: 'The methodology used in this research...',
-        systemAnalysis: 'System analysis approach...',
-        implementation: 'Implementation details...'
+        overview: 'This research employs a systematic approach to exploring the topic, including literature review, analysis of existing implementations, and best practice evaluation.',
+        systemAnalysis: 'A thorough system analysis was conducted to understand the components, requirements, and constraints.',
+        implementation: 'The implementation strategy focuses on practical approaches to building robust solutions.'
       },
       modules: [
-        { name: 'Module 1', description: 'Description of module 1' },
-        { name: 'Module 2', description: 'Description of module 2' }
+        { name: 'Core Components', description: 'Description of the fundamental building blocks.' },
+        { name: 'Implementation Strategy', description: 'Strategies for successful implementation.' }
       ],
       testing: {
-        process: 'Testing process...',
-        results: 'Testing results...'
+        process: 'The testing methodology includes unit testing, integration testing, and system validation.',
+        results: 'Testing results demonstrate the viability and effectiveness of the proposed solutions.'
       },
-      futureScope: 'Future scope of this research...',
-      conclusion: 'Conclusion of the research...',
+      futureScope: 'Future research could explore additional applications, optimizations, and integration with emerging technologies.',
+      conclusion: 'This research provides valuable insights into implementing effective solutions and addressing common challenges.',
       references: [
-        { text: 'Reference 1', url: 'https://example.com/ref1' },
-        { text: 'Reference 2', url: 'https://example.com/ref2' }
+        { text: 'Modern Software Development Practices', url: 'https://example.com/software-development' },
+        { text: 'System Design Principles', url: 'https://example.com/system-design' },
+        { text: 'Implementation Guidelines', url: 'https://example.com/implementation' }
       ]
     };
     

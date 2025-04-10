@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { AIConfigState } from '@/types';
+import { AIConfigState, ResearchPaper } from '@/types';
 import { generateResearchPaper } from '@/services/aiResearchService';
 import { Button } from '@/components/ui/button';
 import {
@@ -74,21 +74,22 @@ const ResearchPaperDialog: React.FC<ResearchPaperDialogProps> = ({
 
     setIsGenerating(true);
     try {
-      // Pass additional context about the project to generate a more relevant paper
-      const data = await generateResearchPaper(
-        topic, 
-        aiConfig, 
-        {
-          description: projectDescription,
-          skills: projectSkills
-        }
-      );
+      // Pass additional context as part of the topic parameter
+      const contextualizedTopic = projectDescription 
+        ? `${topic} - Context: ${projectDescription}. Skills: ${projectSkills.join(', ')}`
+        : topic;
+        
+      const data = await generateResearchPaper(contextualizedTopic, aiConfig);
       
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      // Transform ResearchPaper type to the format expected by paperData state
+      const transformedData = {
+        title: data.title,
+        abstract: data.abstract,
+        content: `${data.introduction}\n\n${data.methodology.overview}\n\n${data.methodology.implementation}\n\n${data.conclusion}`,
+        references: data.references.map(ref => `${ref.text}${ref.url ? ` (${ref.url})` : ''}`)
+      };
       
-      setPaperData(data);
+      setPaperData(transformedData);
       setCurrentTab('abstract');
     } catch (error) {
       toast({
