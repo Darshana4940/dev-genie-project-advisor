@@ -48,6 +48,8 @@ export const getEnhancedRecommendations = async (
       recommendations = generateOpenAIRecommendations(skills, interests, experienceLevel, goals, projectTypes);
     } else if (provider === 'gemini') {
       recommendations = generateGeminiRecommendations(skills, interests, experienceLevel, goals, projectTypes);
+    } else if (provider === 'claude') {
+      recommendations = generateClaudeRecommendations(skills, interests, experienceLevel, goals, projectTypes);
     } else if (provider === 'github') {
       recommendations = generateGitHubRecommendations(skills, interests, experienceLevel, goals, projectTypes);
     }
@@ -290,6 +292,38 @@ const generateProjectRecommendations = (
       type: "Web App",
       difficulty: "advanced",
       timeEstimate: "2-3 months"
+    },
+    {
+      title: "Code Review Platform",
+      description: "Build a platform where developers can submit code snippets for review by peers, with commenting and version tracking.",
+      skills: ["React", "Node.js", "MongoDB", "Express", "Socket.io"],
+      type: "Developer Tool",
+      difficulty: "advanced",
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Subscription Box Management System",
+      description: "Create a system to manage subscription box services, including customer management, inventory, billing cycles, and shipping.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "Stripe API"],
+      type: "Business Application",
+      difficulty: "advanced",
+      timeEstimate: "2-4 months"
+    },
+    {
+      title: "Smart Home Control Dashboard",
+      description: "Develop a dashboard to control and monitor smart home devices, with automation rules and usage analytics.",
+      skills: ["React", "Node.js", "WebSockets", "IoT APIs", "Chart.js"],
+      type: "IoT Application",
+      difficulty: "intermediate",
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Event Planning and Management System",
+      description: "Build a comprehensive system for planning, organizing, and managing events with registration, scheduling, and attendee tracking.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "Google Calendar API"],
+      type: "Business Application",
+      difficulty: "intermediate",
+      timeEstimate: "2-3 months"
     }
   ];
   
@@ -342,8 +376,8 @@ const generateProjectRecommendations = (
     return { ...project, score };
   }).sort((a, b) => b.score - a.score);
   
-  // Take top N projects
-  const topProjects = scoredProjects.slice(0, 5);
+  // Take top 15 projects or all if less than 15
+  const topProjects = scoredProjects.slice(0, Math.max(15, scoredProjects.length));
   
   // Convert to ProjectSuggestion format
   topProjects.forEach((project, index) => {
@@ -435,10 +469,74 @@ const generateOpenAIRecommendations = (
       type: "Developer Tool",
       difficulty: getDifficultyFromExperience(experienceLevel),
       timeEstimate: "3-4 weeks"
+    },
+    {
+      title: "AI-Powered Research Tool",
+      description: "Build a tool that helps researchers find relevant papers, extract key information, and generate summaries using AI.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB", "D3.js"],
+      type: "Research Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Sentiment Analysis Dashboard",
+      description: "Create a dashboard that analyzes customer feedback, reviews, and social media mentions to determine overall sentiment.",
+      skills: ["React", "Python", "OpenAI API", "Flask", "PostgreSQL", "Chart.js"],
+      type: "Business Analytics",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Automated Content Moderation System",
+      description: "Develop a system that uses AI to identify and filter inappropriate content in real-time for online communities.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "Redis", "WebSockets"],
+      type: "Community Management",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "AI Language Translator with Cultural Context",
+      description: "Build a translator that not only translates text but also provides cultural context and nuances for better understanding.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB"],
+      type: "Language Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "AI-Assisted Legal Document Generator",
+      description: "Create a tool that helps users generate legal documents with proper formatting and content based on their inputs.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "PostgreSQL"],
+      type: "Legal Tech",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-4 months"
+    },
+    {
+      title: "Smart Email Management System",
+      description: "Develop an application that categorizes emails, generates response suggestions, and highlights important information.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB", "Gmail API"],
+      type: "Productivity Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "AI Healthcare Symptom Analyzer",
+      description: "Build a tool that helps users understand potential causes of their symptoms and when to seek professional medical advice.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "PostgreSQL"],
+      type: "Healthcare",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Recipe Generator Based on Ingredients",
+      description: "Create an app that suggests recipes based on ingredients users have available, with nutritional information and substitution options.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB"],
+      type: "Food Tech",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
     }
   ];
   
-  return formatProjectIdeas(openAIProjectIdeas, skills, interests, goals);
+  return formatProjectIdeas(openAIProjectIdeas, skills, interests, goals, 15);
 };
 
 /**
@@ -508,10 +606,211 @@ const generateGeminiRecommendations = (
       type: "Location-Based App",
       difficulty: getDifficultyFromExperience(experienceLevel),
       timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Interactive Learning Platform",
+      description: "Create an educational platform with interactive lessons, quizzes, and progress tracking.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "Socket.io"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Market Analysis Tool",
+      description: "Build a tool that analyzes market trends, competitor data, and consumer behavior.",
+      skills: ["React", "Python", "Flask", "PostgreSQL", "D3.js", "Redis"],
+      type: "Business Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-4 months"
+    },
+    {
+      title: "Environmental Monitoring Dashboard",
+      description: "Create a dashboard for monitoring environmental data like air quality, temperature, and pollution levels.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "WebSockets"],
+      type: "Environmental Tech",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Supply Chain Management System",
+      description: "Develop a system to track products through the entire supply chain with real-time updates and analytics.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "D3.js", "Redux"],
+      type: "Business Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Collaborative Research Platform",
+      description: "Build a platform for researchers to collaborate, share findings, and visualize data.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "Socket.io"],
+      type: "Research Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Transportation Network Analyzer",
+      description: "Create a tool for analyzing transportation networks, identifying bottlenecks, and suggesting improvements.",
+      skills: ["React", "Python", "Flask", "PostgreSQL", "D3.js", "Google Maps API"],
+      type: "Transportation",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Customer Journey Visualization Tool",
+      description: "Develop a tool that visualizes the customer journey from first contact to purchase and beyond.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "Redux"],
+      type: "Marketing Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Multi-platform Content Management System",
+      description: "Build a CMS that allows users to create and manage content across multiple platforms with analytics.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "Redis", "OAuth"],
+      type: "Content Management",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
     }
   ];
   
-  return formatProjectIdeas(geminiProjectIdeas, skills, interests, goals);
+  return formatProjectIdeas(geminiProjectIdeas, skills, interests, goals, 15);
+};
+
+/**
+ * Generate Claude-specific project recommendations
+ */
+const generateClaudeRecommendations = (
+  skills: string[],
+  interests: string,
+  experienceLevel: string,
+  goals: string,
+  projectTypes: string[]
+): ProjectSuggestion[] => {
+  // Projects focusing on natural language processing, content creation, and advanced text processing
+  const claudeProjectIdeas = [
+    {
+      title: "Contextual Writing Assistant",
+      description: "Build an AI writing assistant that understands context, suggests improvements, and maintains consistent tone.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Content Creation",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Advanced Document Summarizer",
+      description: "Create a tool that generates concise summaries of long documents while preserving key information and nuance.",
+      skills: ["React", "Node.js", "Claude API", "Express", "PostgreSQL"],
+      type: "Productivity Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Academic Research Assistant",
+      description: "Develop an application that helps researchers find relevant papers, extract key information, and generate literature reviews.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Research Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Nuanced Sentiment Analysis Platform",
+      description: "Build a platform that analyzes text for complex emotional tones, subtle sentiments, and cultural contexts.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB", "D3.js"],
+      type: "Analytics",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Interactive Storytelling Platform",
+      description: "Create a platform where users can generate interactive stories with branching narratives based on their inputs.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB", "Redux"],
+      type: "Entertainment",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Ethical Dilemma Analyzer",
+      description: "Develop a tool that helps users understand multiple perspectives on ethical dilemmas and complex issues.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Educational Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Contextual Language Learning App",
+      description: "Build an app that teaches languages through realistic conversations and contextual examples.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 months"
+    },
+    {
+      title: "Policy and Legal Document Analyzer",
+      description: "Create a tool that simplifies and explains complex legal and policy documents for non-experts.",
+      skills: ["React", "Node.js", "Claude API", "Express", "PostgreSQL"],
+      type: "Legal Tech",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Personalized Learning Content Generator",
+      description: "Develop a system that creates customized educational content based on a student's learning style and progress.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB", "Redux"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-6 months"
+    },
+    {
+      title: "Cultural Context Translator",
+      description: "Build a tool that not only translates text but also explains cultural references, idioms, and context.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Language Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 months"
+    },
+    {
+      title: "Comprehensive Meeting Assistant",
+      description: "Create an assistant that takes meeting notes, identifies action items, summarizes discussions, and follows up on tasks.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB", "WebSockets"],
+      type: "Productivity Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Content Moderation System with Nuance",
+      description: "Develop a content moderation system that understands context, humor, and cultural nuances to reduce false positives.",
+      skills: ["React", "Node.js", "Claude API", "Express", "PostgreSQL", "Redis"],
+      type: "Community Management",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Advanced Tutoring System",
+      description: "Build an interactive tutoring system that adapts to student questions and provides detailed, personalized explanations.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB", "Socket.io"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Medical Literature Analysis Tool",
+      description: "Create a tool for healthcare professionals to quickly analyze and extract insights from medical research papers.",
+      skills: ["React", "Node.js", "Claude API", "Express", "PostgreSQL"],
+      type: "Healthcare",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Interview Preparation Assistant",
+      description: "Develop an assistant that helps users prepare for interviews with realistic practice questions and feedback.",
+      skills: ["React", "Node.js", "Claude API", "Express", "MongoDB"],
+      type: "Career Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    }
+  ];
+  
+  return formatProjectIdeas(claudeProjectIdeas, skills, interests, goals, 15);
 };
 
 /**
@@ -581,14 +880,78 @@ const generateGitHubRecommendations = (
       type: "Career Tool",
       difficulty: getDifficultyFromExperience(experienceLevel),
       timeEstimate: "3-4 weeks"
+    },
+    {
+      title: "Team Collaboration Hub",
+      description: "Build a central hub for team collaboration with GitHub integration, document sharing, and discussion boards.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "GitHub API", "Socket.io"],
+      type: "Collaboration Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Code Quality Analyzer",
+      description: "Create a tool that analyzes code quality, suggests improvements, and tracks progress over time.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "D3.js"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Open Source Project Explorer",
+      description: "Develop a platform for discovering and exploring open source projects based on skills and interests.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "Redux"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 months"
+    },
+    {
+      title: "Code Learning Platform",
+      description: "Build a platform that uses real GitHub repositories to create interactive coding challenges and tutorials.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "CodeMirror"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Developer Collaboration Network",
+      description: "Create a social network for developers to find collaborators for projects based on skills and interests.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "GitHub API", "Socket.io"],
+      type: "Social Network",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "GitHub Repository Analytics",
+      description: "Develop a tool that provides in-depth analytics and insights for GitHub repositories and organizations.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "GitHub API", "D3.js"],
+      type: "Analytics",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 months"
+    },
+    {
+      title: "Automated Code Deployment System",
+      description: "Build a system that automates code deployment, testing, and rollback procedures for GitHub projects.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "Docker"],
+      type: "DevOps Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 months"
+    },
+    {
+      title: "Developer Skill Graph",
+      description: "Create a tool that visualizes a developer's skills based on their GitHub contributions and repositories.",
+      skills: ["React", "Node.js", "Express", "Neo4j", "GitHub API", "D3.js"],
+      type: "Career Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 months"
     }
   ];
   
-  return formatProjectIdeas(githubProjectIdeas, skills, interests, goals);
+  return formatProjectIdeas(githubProjectIdeas, skills, interests, goals, 15);
 };
 
 /**
- * Format project ideas into ProjectSuggestion objects
+ * Format project ideas into ProjectSuggestion objects with a minimum count
  */
 const formatProjectIdeas = (
   projectIdeas: Array<{
@@ -601,7 +964,8 @@ const formatProjectIdeas = (
   }>,
   userSkills: string[],
   interests: string,
-  goals: string
+  goals: string,
+  minCount: number = 15
 ): ProjectSuggestion[] => {
   const skillsLower = userSkills.map(s => s.toLowerCase());
   
@@ -633,11 +997,16 @@ const formatProjectIdeas = (
     return { ...project, score };
   });
   
-  // Sort by score and take top 7 projects
-  const topProjects = scoredProjects.sort((a, b) => b.score - a.score).slice(0, 7);
+  // Sort by score
+  const sortedProjects = scoredProjects.sort((a, b) => b.score - a.score);
+  
+  // Take at least minCount projects or all if less than minCount
+  const selectedProjects = sortedProjects.length >= minCount 
+    ? sortedProjects.slice(0, minCount)
+    : sortedProjects;
   
   // Convert to ProjectSuggestion format
-  return topProjects.map((project, index) => {
+  return selectedProjects.map((project, index) => {
     const resources: ProjectResource[] = generateResourcesForProject(project);
     
     return {
