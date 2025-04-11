@@ -1,4 +1,3 @@
-
 import { AIConfigState, ProjectSuggestion, ResearchPaper, ProjectResource } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -23,6 +22,40 @@ export const getRecommendedProjects = async (
   } catch (error) {
     console.error('Error generating recommendations:', error);
     throw new Error('Failed to generate project recommendations');
+  }
+};
+
+/**
+ * Get enhanced recommendations from specific AI providers
+ */
+export const getEnhancedRecommendations = async (
+  skills: string[],
+  interests: string = '',
+  experienceLevel: string = 'beginner',
+  goals: string = '',
+  provider: string = 'openai',
+  aiConfig: AIConfigState
+): Promise<ProjectSuggestion[]> => {
+  console.info(`Generating enhanced ${provider} recommendations for skills:`, skills);
+  
+  try {
+    // For demo purposes, we'll generate more diverse projects based on the provider
+    // In a real implementation, you would call the appropriate AI API
+    const projectTypes = getProjectTypesBySkills(skills);
+    let recommendations: ProjectSuggestion[] = [];
+    
+    if (provider === 'openai') {
+      recommendations = generateOpenAIRecommendations(skills, interests, experienceLevel, goals, projectTypes);
+    } else if (provider === 'gemini') {
+      recommendations = generateGeminiRecommendations(skills, interests, experienceLevel, goals, projectTypes);
+    } else if (provider === 'github') {
+      recommendations = generateGitHubRecommendations(skills, interests, experienceLevel, goals, projectTypes);
+    }
+    
+    return recommendations;
+  } catch (error) {
+    console.error(`Error generating ${provider} recommendations:`, error);
+    throw new Error(`Failed to generate ${provider} project recommendations`);
   }
 };
 
@@ -336,6 +369,309 @@ const generateProjectRecommendations = (
 };
 
 /**
+ * Generate OpenAI-specific project recommendations
+ */
+const generateOpenAIRecommendations = (
+  skills: string[],
+  interests: string,
+  experienceLevel: string,
+  goals: string,
+  projectTypes: string[]
+): ProjectSuggestion[] => {
+  // Advanced project ideas focusing on AI/ML and innovative applications
+  const openAIProjectIdeas = [
+    {
+      title: "AI-Powered Content Generator",
+      description: "Build a web application that uses OpenAI's API to generate blog posts, social media content, or marketing copy based on user prompts.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB"],
+      type: "AI/ML Application",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Intelligent Customer Support Chatbot",
+      description: "Create a customer service chatbot that uses natural language processing to understand queries and provide relevant responses.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB", "Websockets"],
+      type: "AI/ML Application",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Smart Document Analysis Tool",
+      description: "Develop an application that extracts key information from documents using OCR and AI text analysis.",
+      skills: ["React", "Python", "OpenAI API", "Flask", "PostgreSQL", "Tesseract OCR"],
+      type: "AI/ML Application",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Personalized Learning Platform",
+      description: "Build an e-learning platform that creates personalized learning paths and content based on user preferences and performance.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB", "Redux"],
+      type: "Education",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Creative Writing Assistant",
+      description: "Create a tool that helps writers overcome writer's block with AI-generated suggestions and prompts.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB"],
+      type: "Content Creation",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Visual Design Assistant",
+      description: "Build a tool that uses AI to generate design suggestions, color palettes, and layouts based on user preferences.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "MongoDB", "Canvas API"],
+      type: "Design Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Code Review Assistant",
+      description: "Create an application that uses AI to analyze code, suggest improvements, and identify potential bugs.",
+      skills: ["React", "Node.js", "OpenAI API", "Express", "PostgreSQL"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-4 weeks"
+    }
+  ];
+  
+  return formatProjectIdeas(openAIProjectIdeas, skills, interests, goals);
+};
+
+/**
+ * Generate Gemini-specific project recommendations
+ */
+const generateGeminiRecommendations = (
+  skills: string[],
+  interests: string,
+  experienceLevel: string,
+  goals: string,
+  projectTypes: string[]
+): ProjectSuggestion[] => {
+  // Projects focusing on data visualization, analytics, and multimodal applications
+  const geminiProjectIdeas = [
+    {
+      title: "Interactive Data Dashboard",
+      description: "Build a comprehensive data visualization dashboard with interactive charts, filters, and real-time updates.",
+      skills: ["React", "D3.js", "Node.js", "Express", "PostgreSQL", "Socket.io"],
+      type: "Data Visualization",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Social Media Analytics Platform",
+      description: "Create a tool that analyzes social media data to provide insights on trends, sentiment, and user engagement.",
+      skills: ["React", "Python", "Flask", "MongoDB", "D3.js", "Twitter API"],
+      type: "Analytics",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Advanced E-commerce Platform",
+      description: "Build a feature-rich e-commerce site with recommendation engine, inventory management, and analytics.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "Redis", "Stripe API"],
+      type: "E-commerce",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Health and Fitness Tracker",
+      description: "Develop an application that tracks workouts, nutrition, and health metrics with visualizations and insights.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "Chart.js"],
+      type: "Health Tech",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Business Intelligence Dashboard",
+      description: "Create a comprehensive BI tool with KPI tracking, data visualization, and automated reporting.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "D3.js", "Redux"],
+      type: "Business Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "6-8 weeks"
+    },
+    {
+      title: "User Behavior Analysis Tool",
+      description: "Build an application that tracks and analyzes user behavior on websites with heat maps and session recordings.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "D3.js", "WebSocket"],
+      type: "Analytics",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Location-Based Service Finder",
+      description: "Develop a platform that helps users find local services with map integration and reviews.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "Google Maps API", "Redux"],
+      type: "Location-Based App",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    }
+  ];
+  
+  return formatProjectIdeas(geminiProjectIdeas, skills, interests, goals);
+};
+
+/**
+ * Generate GitHub-specific project recommendations
+ */
+const generateGitHubRecommendations = (
+  skills: string[],
+  interests: string,
+  experienceLevel: string,
+  goals: string,
+  projectTypes: string[]
+): ProjectSuggestion[] => {
+  // Projects focusing on developer tools, collaboration, and open-source contributions
+  const githubProjectIdeas = [
+    {
+      title: "Open Source Contribution Tracker",
+      description: "Create a dashboard that tracks and visualizes open source contributions across GitHub repositories.",
+      skills: ["React", "Node.js", "GitHub API", "Express", "MongoDB", "D3.js"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Collaborative Code Editor",
+      description: "Build a real-time collaborative code editor with syntax highlighting, version control, and chat.",
+      skills: ["React", "Node.js", "Socket.io", "Express", "MongoDB", "CodeMirror"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "DevOps Monitoring Dashboard",
+      description: "Develop a comprehensive dashboard for monitoring CI/CD pipelines, deployments, and infrastructure.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "Docker", "GitHub Actions API"],
+      type: "DevOps Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "5-7 weeks"
+    },
+    {
+      title: "Technical Documentation Generator",
+      description: "Create a tool that automatically generates documentation from code comments and repository structure.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "Markdown"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Project Management Tool",
+      description: "Build a project management application with Kanban boards, time tracking, and GitHub integration.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "GitHub API", "Redux"],
+      type: "Project Management",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "4-6 weeks"
+    },
+    {
+      title: "Code Review Platform",
+      description: "Develop a platform for peer code reviews with commenting, approval workflows, and metrics.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "Socket.io"],
+      type: "Developer Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "5-7 weeks"
+    },
+    {
+      title: "Developer Portfolio Generator",
+      description: "Create a tool that generates professional developer portfolios from GitHub profiles and repositories.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "GitHub API", "Next.js"],
+      type: "Career Tool",
+      difficulty: getDifficultyFromExperience(experienceLevel),
+      timeEstimate: "3-4 weeks"
+    }
+  ];
+  
+  return formatProjectIdeas(githubProjectIdeas, skills, interests, goals);
+};
+
+/**
+ * Format project ideas into ProjectSuggestion objects
+ */
+const formatProjectIdeas = (
+  projectIdeas: Array<{
+    title: string;
+    description: string;
+    skills: string[];
+    type: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    timeEstimate: string;
+  }>,
+  userSkills: string[],
+  interests: string,
+  goals: string
+): ProjectSuggestion[] => {
+  const skillsLower = userSkills.map(s => s.toLowerCase());
+  
+  // Score the projects
+  const scoredProjects = projectIdeas.map(project => {
+    let score = 0;
+    
+    // Score based on skill match percentage
+    const matchingSkills = project.skills.filter(skill => 
+      skillsLower.includes(skill.toLowerCase())
+    );
+    score += (matchingSkills.length / project.skills.length) * 50;
+    
+    // Additional scoring based on interests and goals if available
+    if (interests) {
+      const interestKeywords = interests.toLowerCase().split(/\s+/).filter(word => word.length > 3);
+      const projectText = `${project.title} ${project.description} ${project.type}`.toLowerCase();
+      const interestMatches = interestKeywords.filter(keyword => projectText.includes(keyword));
+      score += interestMatches.length * 10;
+    }
+    
+    if (goals) {
+      const goalKeywords = goals.toLowerCase().split(/\s+/).filter(word => word.length > 3);
+      const projectText = `${project.title} ${project.description} ${project.type}`.toLowerCase();
+      const goalMatches = goalKeywords.filter(keyword => projectText.includes(keyword));
+      score += goalMatches.length * 15;
+    }
+    
+    return { ...project, score };
+  });
+  
+  // Sort by score and take top 7 projects
+  const topProjects = scoredProjects.sort((a, b) => b.score - a.score).slice(0, 7);
+  
+  // Convert to ProjectSuggestion format
+  return topProjects.map((project, index) => {
+    const resources: ProjectResource[] = generateResourcesForProject(project);
+    
+    return {
+      id: `project-${Date.now()}-${index}`,
+      title: project.title,
+      description: project.description,
+      difficulty: project.difficulty,
+      skills: project.skills,
+      timeEstimate: project.timeEstimate,
+      resources: resources,
+      tags: [project.type],
+      skillMatchScore: Math.floor(project.score),
+      sourceCode: {
+        relatedResources: resources
+      }
+    };
+  });
+};
+
+/**
+ * Get difficulty level based on experience
+ */
+const getDifficultyFromExperience = (
+  experienceLevel: string
+): 'beginner' | 'intermediate' | 'advanced' => {
+  if (experienceLevel === 'mid' || experienceLevel === 'intermediate' || experienceLevel === 'junior') {
+    return 'intermediate';
+  } else if (experienceLevel === 'senior' || experienceLevel === 'advanced') {
+    return 'advanced';
+  }
+  return 'beginner';
+};
+
+/**
  * Generate resources for a specific project
  */
 const generateResourcesForProject = (project: any): ProjectResource[] => {
@@ -375,6 +711,9 @@ const generateResourcesForProject = (project: any): ProjectResource[] => {
   return resources;
 };
 
+/**
+ * Generate a research paper based on a single topic string
+ */
 export const generateResearchPaper = async (
   topic: string,
   config: AIConfigState
@@ -475,6 +814,9 @@ export const generateProjectResearchPaper = async (
   }
 };
 
+/**
+ * Get project details
+ */
 export const getProjectDetails = async (
   project: ProjectSuggestion,
   config: AIConfigState
@@ -488,6 +830,9 @@ export const getProjectDetails = async (
   }
 };
 
+/**
+ * Get implementation steps
+ */
 export const getImplementationSteps = async (
   project: ProjectSuggestion,
   config: AIConfigState
@@ -501,6 +846,9 @@ export const getImplementationSteps = async (
   }
 };
 
+/**
+ * Get project roadmap
+ */
 export const getProjectRoadmap = async (
   project: ProjectSuggestion,
   config: AIConfigState
@@ -514,6 +862,9 @@ export const getProjectRoadmap = async (
   }
 };
 
+/**
+ * Get code samples
+ */
 export const getCodeSamples = async (
   project: ProjectSuggestion,
   config: AIConfigState
