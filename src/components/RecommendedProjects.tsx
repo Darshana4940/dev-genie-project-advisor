@@ -31,12 +31,14 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   const [enhancedRecommendations, setEnhancedRecommendations] = useState<Record<string, ProjectSuggestion[]>>({
     openai: [],
     gemini: [],
+    claude: [],
     github: []
   });
   const [activeProvider, setActiveProvider] = useState<string>('all');
   const [loadingProviders, setLoadingProviders] = useState<Record<string, boolean>>({
     openai: false,
     gemini: false,
+    claude: false,
     github: false
   });
   const { toast } = useToast();
@@ -67,6 +69,51 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
 
     fetchRecommendations();
   }, [skills, interests, experienceLevel, goals, toast]);
+
+  // Automatically fetch enhanced recommendations from all enabled providers when component loads
+  useEffect(() => {
+    if (!aiConfig || skills.length === 0) return;
+
+    const fetchAllEnabledProviders = async () => {
+      const providers = Object.keys(aiConfig).filter(key => aiConfig[key].enabled);
+      
+      for (const provider of providers) {
+        setLoadingProviders(prev => ({ ...prev, [provider]: true }));
+        
+        try {
+          const enhancedData = await getEnhancedRecommendations(
+            skills, 
+            interests, 
+            experienceLevel, 
+            goals, 
+            provider,
+            aiConfig
+          );
+          
+          setEnhancedRecommendations(prev => ({
+            ...prev,
+            [provider]: enhancedData
+          }));
+          
+          toast({
+            title: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Recommendations`,
+            description: `Successfully fetched ${enhancedData.length} project suggestions.`,
+          });
+        } catch (error) {
+          console.error(`Error fetching ${provider} recommendations:`, error);
+          toast({
+            title: `Error with ${provider}`,
+            description: `Could not fetch recommendations from ${provider}.`,
+            variant: "destructive"
+          });
+        } finally {
+          setLoadingProviders(prev => ({ ...prev, [provider]: false }));
+        }
+      }
+    };
+    
+    fetchAllEnabledProviders();
+  }, [skills, interests, experienceLevel, goals, aiConfig, toast]);
 
   const fetchEnhancedRecommendations = async (provider: string) => {
     if (!aiConfig) return;
@@ -138,6 +185,9 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
               </TabsTrigger>
               <TabsTrigger value="gemini" className="px-3 py-1.5" disabled={!aiConfig.gemini.enabled}>
                 Gemini
+              </TabsTrigger>
+              <TabsTrigger value="claude" className="px-3 py-1.5" disabled={!aiConfig.claude.enabled}>
+                Claude
               </TabsTrigger>
               <TabsTrigger value="github" className="px-3 py-1.5" disabled={!aiConfig.github.enabled}>
                 GitHub
@@ -211,6 +261,28 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
                   disabled={loadingProviders.gemini || !aiConfig.gemini.enabled}
                 >
                   Generate Gemini Recommendations
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="claude" className="mt-0">
+            {enhancedRecommendations.claude.length > 0 ? (
+              renderProjectGrid(enhancedRecommendations.claude)
+            ) : loadingProviders.claude ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  No Claude recommendations yet. Click refresh to get AI-powered project ideas.
+                </p>
+                <Button 
+                  onClick={() => fetchEnhancedRecommendations('claude')}
+                  disabled={loadingProviders.claude || !aiConfig.claude.enabled}
+                >
+                  Generate Claude Recommendations
                 </Button>
               </div>
             )}
