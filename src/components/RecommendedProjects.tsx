@@ -1,13 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { getRecommendedProjects, getEnhancedRecommendations } from '@/services/aiResearchService';
-import { ProjectSuggestion, AIConfigState } from '@/types';
+import React, { useState } from 'react';
+import { AIConfigState } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, ThumbsUp, ExternalLink, Tag, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ProjectGrid from './ProjectGrid';
+import ProviderRecommendations from './ProviderRecommendations';
+import { useRecommendations } from '@/hooks/useRecommendations';
 
 interface RecommendedProjectsProps {
   skills: string[];
@@ -26,140 +25,15 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   aiConfig,
   onSelectProject
 }) => {
-  const [loading, setLoading] = useState(true);
-  const [recommendations, setRecommendations] = useState<ProjectSuggestion[]>([]);
-  const [enhancedRecommendations, setEnhancedRecommendations] = useState<Record<string, ProjectSuggestion[]>>({
-    openai: [],
-    gemini: [],
-    claude: [],
-    github: []
-  });
   const [activeProvider, setActiveProvider] = useState<string>('all');
-  const [loadingProviders, setLoadingProviders] = useState<Record<string, boolean>>({
-    openai: false,
-    gemini: false,
-    claude: false,
-    github: false
-  });
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (skills.length === 0) {
-        setRecommendations([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const data = await getRecommendedProjects(skills, interests, experienceLevel, goals);
-        setRecommendations(data);
-      } catch (error) {
-        console.error("Error fetching recommendations:", error);
-        toast({
-          title: "Error fetching recommendations",
-          description: "Please try again later.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecommendations();
-  }, [skills, interests, experienceLevel, goals, toast]);
-
-  // Automatically fetch enhanced recommendations from all enabled providers when component loads
-  useEffect(() => {
-    if (!aiConfig || skills.length === 0) return;
-
-    const fetchAllEnabledProviders = async () => {
-      const providers = Object.keys(aiConfig).filter(key => aiConfig[key].enabled);
-      
-      for (const provider of providers) {
-        setLoadingProviders(prev => ({ ...prev, [provider]: true }));
-        
-        try {
-          const enhancedData = await getEnhancedRecommendations(
-            skills, 
-            interests, 
-            experienceLevel, 
-            goals, 
-            provider,
-            aiConfig
-          );
-          
-          setEnhancedRecommendations(prev => ({
-            ...prev,
-            [provider]: enhancedData
-          }));
-          
-          toast({
-            title: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Recommendations`,
-            description: `Successfully fetched ${enhancedData.length} project suggestions.`,
-          });
-        } catch (error) {
-          console.error(`Error fetching ${provider} recommendations:`, error);
-          toast({
-            title: `Error with ${provider}`,
-            description: `Could not fetch recommendations from ${provider}.`,
-            variant: "destructive"
-          });
-        } finally {
-          setLoadingProviders(prev => ({ ...prev, [provider]: false }));
-        }
-      }
-    };
-    
-    fetchAllEnabledProviders();
-  }, [skills, interests, experienceLevel, goals, aiConfig, toast]);
-
-  const fetchEnhancedRecommendations = async (provider: string) => {
-    if (!aiConfig) return;
-    
-    setLoadingProviders(prev => ({ ...prev, [provider]: true }));
-    
-    try {
-      const enhancedData = await getEnhancedRecommendations(
-        skills, 
-        interests, 
-        experienceLevel, 
-        goals, 
-        provider,
-        aiConfig
-      );
-      
-      setEnhancedRecommendations(prev => ({
-        ...prev,
-        [provider]: enhancedData
-      }));
-      
-      toast({
-        title: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Recommendations`,
-        description: `Successfully fetched ${enhancedData.length} project suggestions.`,
-      });
-    } catch (error) {
-      console.error(`Error fetching ${provider} recommendations:`, error);
-      toast({
-        title: `Error with ${provider}`,
-        description: `Could not fetch recommendations from ${provider}. ${error.message}`,
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingProviders(prev => ({ ...prev, [provider]: false }));
-    }
-  };
-
-  const getDisplayedProjects = (): ProjectSuggestion[] => {
-    if (activeProvider === 'all') {
-      return recommendations;
-    }
-    
-    return enhancedRecommendations[activeProvider] || [];
-  };
-
-  const displayedProjects = getDisplayedProjects();
+  
+  const {
+    loading,
+    recommendations,
+    enhancedRecommendations,
+    loadingProviders,
+    fetchEnhancedRecommendations
+  } = useRecommendations(skills, interests, experienceLevel, goals, aiConfig);
 
   if (loading) {
     return (
@@ -219,201 +93,58 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
           </div>
           
           <TabsContent value="all" className="mt-0">
-            {renderProjectGrid(recommendations)}
+            <ProjectGrid projects={recommendations} onSelectProject={onSelectProject} />
           </TabsContent>
           
           <TabsContent value="openai" className="mt-0">
-            {enhancedRecommendations.openai.length > 0 ? (
-              renderProjectGrid(enhancedRecommendations.openai)
-            ) : loadingProviders.openai ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No OpenAI recommendations yet. Click refresh to get AI-powered project ideas.
-                </p>
-                <Button 
-                  onClick={() => fetchEnhancedRecommendations('openai')}
-                  disabled={loadingProviders.openai || !aiConfig.openai.enabled}
-                >
-                  Generate OpenAI Recommendations
-                </Button>
-              </div>
-            )}
+            <ProviderRecommendations
+              projects={enhancedRecommendations.openai}
+              loading={loadingProviders.openai}
+              provider="OpenAI"
+              onRefresh={() => fetchEnhancedRecommendations('openai')}
+              disabled={loadingProviders.openai || !aiConfig.openai.enabled}
+              onSelectProject={onSelectProject}
+            />
           </TabsContent>
           
           <TabsContent value="gemini" className="mt-0">
-            {enhancedRecommendations.gemini.length > 0 ? (
-              renderProjectGrid(enhancedRecommendations.gemini)
-            ) : loadingProviders.gemini ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No Gemini recommendations yet. Click refresh to get AI-powered project ideas.
-                </p>
-                <Button 
-                  onClick={() => fetchEnhancedRecommendations('gemini')}
-                  disabled={loadingProviders.gemini || !aiConfig.gemini.enabled}
-                >
-                  Generate Gemini Recommendations
-                </Button>
-              </div>
-            )}
+            <ProviderRecommendations
+              projects={enhancedRecommendations.gemini}
+              loading={loadingProviders.gemini}
+              provider="Gemini"
+              onRefresh={() => fetchEnhancedRecommendations('gemini')}
+              disabled={loadingProviders.gemini || !aiConfig.gemini.enabled}
+              onSelectProject={onSelectProject}
+            />
           </TabsContent>
           
           <TabsContent value="claude" className="mt-0">
-            {enhancedRecommendations.claude.length > 0 ? (
-              renderProjectGrid(enhancedRecommendations.claude)
-            ) : loadingProviders.claude ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No Claude recommendations yet. Click refresh to get AI-powered project ideas.
-                </p>
-                <Button 
-                  onClick={() => fetchEnhancedRecommendations('claude')}
-                  disabled={loadingProviders.claude || !aiConfig.claude.enabled}
-                >
-                  Generate Claude Recommendations
-                </Button>
-              </div>
-            )}
+            <ProviderRecommendations
+              projects={enhancedRecommendations.claude}
+              loading={loadingProviders.claude}
+              provider="Claude"
+              onRefresh={() => fetchEnhancedRecommendations('claude')}
+              disabled={loadingProviders.claude || !aiConfig.claude.enabled}
+              onSelectProject={onSelectProject}
+            />
           </TabsContent>
           
           <TabsContent value="github" className="mt-0">
-            {enhancedRecommendations.github.length > 0 ? (
-              renderProjectGrid(enhancedRecommendations.github)
-            ) : loadingProviders.github ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No GitHub recommendations yet. Click refresh to get AI-powered project ideas.
-                </p>
-                <Button 
-                  onClick={() => fetchEnhancedRecommendations('github')}
-                  disabled={loadingProviders.github || !aiConfig.github.enabled}
-                >
-                  Generate GitHub Recommendations
-                </Button>
-              </div>
-            )}
+            <ProviderRecommendations
+              projects={enhancedRecommendations.github}
+              loading={loadingProviders.github}
+              provider="GitHub"
+              onRefresh={() => fetchEnhancedRecommendations('github')}
+              disabled={loadingProviders.github || !aiConfig.github.enabled}
+              onSelectProject={onSelectProject}
+            />
           </TabsContent>
         </Tabs>
       )}
       
-      {!aiConfig && displayedProjects.length > 0 && renderProjectGrid(displayedProjects)}
-      
-      {!aiConfig && displayedProjects.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">
-            No recommendations available. Try adding more skills to your profile.
-          </p>
-        </div>
-      )}
+      {!aiConfig && <ProjectGrid projects={recommendations} onSelectProject={onSelectProject} />}
     </div>
   );
-  
-  function renderProjectGrid(projects: ProjectSuggestion[]) {
-    return projects.length > 0 ? (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
-          <Card key={project.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>{project.title}</CardTitle>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  {project.difficulty}
-                </Badge>
-                <Badge variant="outline" className="bg-muted">
-                  {project.timeEstimate}
-                </Badge>
-                {project.skillMatchScore && (
-                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                    {project.skillMatchScore}% Match
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground line-clamp-3">{project.description}</p>
-              
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Skills Required:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {project.skills.slice(0, 5).map((skill, index) => (
-                    <Badge key={index} variant="secondary" className="bg-muted">
-                      {skill}
-                    </Badge>
-                  ))}
-                  {project.skills.length > 5 && (
-                    <Badge variant="secondary" className="bg-muted">+{project.skills.length - 5}</Badge>
-                  )}
-                </div>
-              </div>
-              
-              {project.tags && project.tags.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium mb-2">Tags:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={index} variant="outline" className="bg-secondary/10 text-secondary">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                    {project.tags.length > 3 && (
-                      <Badge variant="outline" className="bg-secondary/10 text-secondary">
-                        +{project.tags.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onSelectProject && onSelectProject(project)}
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                View Details
-              </Button>
-              
-              {project.sourceCode?.githubUrl && (
-                <a 
-                  href={project.sourceCode.githubUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-primary hover:underline"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  GitHub
-                </a>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">
-          No recommendations available. Try adding more skills to your profile.
-        </p>
-      </div>
-    );
-  }
 };
 
 export default RecommendedProjects;
