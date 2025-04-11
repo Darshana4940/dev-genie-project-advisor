@@ -28,7 +28,6 @@ import { mockProjects } from '@/data/mockData';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import AIConfigDialog from '@/components/AIConfigDialog';
 import ProjectDetailView from '@/components/ProjectDetailView';
-import RecommendedProjects from '@/components/RecommendedProjects';
 import { getRecommendedProjects } from '@/services/aiResearchService';
 
 const ProjectAdvisor = () => {
@@ -400,14 +399,72 @@ const ProjectAdvisor = () => {
             
             <TabsContent value="suggestions">
               {suggestions.length > 0 ? (
-                <RecommendedProjects 
-                  skills={skills.map(s => s.name)} 
-                  interests={interests}
-                  experienceLevel={experience}
-                  goals={goals}
-                  aiConfig={aiConfig}
-                  onSelectProject={openProjectDetails}
-                />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {suggestions.map((project) => (
+                    <Card key={project.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <CardTitle>{project.title}</CardTitle>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <Badge variant="outline" className="bg-dev-primary/10 text-dev-primary border-dev-primary/20">
+                            {project.difficulty}
+                          </Badge>
+                          <Badge variant="outline" className="bg-muted">
+                            {project.timeEstimate}
+                          </Badge>
+                          {project.skillMatchScore && (
+                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                              {project.skillMatchScore}% Match
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">{project.description}</p>
+                        
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Skills Required:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {project.skills.map((skill, index) => (
+                              <Badge key={index} variant="secondary" className="bg-muted">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Resources:</h4>
+                          <ul className="space-y-2">
+                            {project.resources.slice(0, 2).map((resource, index) => (
+                              <li key={index} className="flex items-center gap-2 text-sm">
+                                <ExternalLink className="h-4 w-4 text-dev-primary" />
+                                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-dev-primary hover:underline">
+                                  {resource.title}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openProjectDetails(project)}
+                        >
+                          More Details
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => saveProject(project)}
+                          className="bg-dev-primary text-white hover:bg-dev-secondary"
+                        >
+                          Save Project
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center py-12">
                   <h3 className="text-xl font-semibold mb-2">No Suggestions Yet</h3>

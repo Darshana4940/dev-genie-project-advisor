@@ -1,19 +1,18 @@
 
-import React, { useState } from 'react';
-import { AIConfigState, ProjectSuggestion } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { getRecommendedProjects } from '@/services/aiResearchService';
+import { ProjectSuggestion } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ProjectGrid from './ProjectGrid';
-import ProviderRecommendations from './ProviderRecommendations';
-import { useRecommendations } from '@/hooks/useRecommendations';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, ThumbsUp, ExternalLink, Tag } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface RecommendedProjectsProps {
   skills: string[];
   interests?: string;
   experienceLevel?: string;
   goals?: string;
-  aiConfig?: AIConfigState;
   onSelectProject?: (project: ProjectSuggestion) => void;
 }
 
@@ -22,18 +21,38 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
   interests = '',
   experienceLevel = 'beginner',
   goals = '',
-  aiConfig,
   onSelectProject
 }) => {
-  const [activeProvider, setActiveProvider] = useState<string>('all');
-  
-  const {
-    loading,
-    recommendations,
-    enhancedRecommendations,
-    loadingProviders,
-    fetchEnhancedRecommendations
-  } = useRecommendations(skills, interests, experienceLevel, goals, aiConfig);
+  const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<ProjectSuggestion[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (skills.length === 0) {
+        setRecommendations([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const data = await getRecommendedProjects(skills, interests, experienceLevel, goals);
+        setRecommendations(data);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        toast({
+          title: "Error fetching recommendations",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecommendations();
+  }, [skills, interests, experienceLevel, goals, toast]);
 
   if (loading) {
     return (
@@ -43,106 +62,87 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
     );
   }
 
+  if (recommendations.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">
+          No recommendations available. Try adding more skills to your profile.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold">Recommended Projects</h3>
-      
-      {aiConfig && (
-        <Tabs value={activeProvider} onValueChange={setActiveProvider} className="w-full">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <TabsList className="h-auto p-1">
-              <TabsTrigger value="all" className="px-3 py-1.5">
-                Default
-              </TabsTrigger>
-              <TabsTrigger value="openai" className="px-3 py-1.5" disabled={!aiConfig.openai.enabled}>
-                OpenAI
-              </TabsTrigger>
-              <TabsTrigger value="gemini" className="px-3 py-1.5" disabled={!aiConfig.gemini.enabled}>
-                Gemini
-              </TabsTrigger>
-              <TabsTrigger value="claude" className="px-3 py-1.5" disabled={!aiConfig.claude.enabled}>
-                Claude
-              </TabsTrigger>
-              <TabsTrigger value="github" className="px-3 py-1.5" disabled={!aiConfig.github.enabled}>
-                GitHub
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="flex gap-2">
-              {activeProvider !== 'all' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => fetchEnhancedRecommendations(activeProvider)}
-                  disabled={loadingProviders[activeProvider]}
-                >
-                  {loadingProviders[activeProvider] ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
-                    </>
-                  )}
-                </Button>
+      <div className="grid gap-6 md:grid-cols-2">
+        {recommendations.map((project) => (
+          <Card key={project.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle>{project.title}</CardTitle>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                  {project.difficulty}
+                </Badge>
+                <Badge variant="outline" className="bg-muted">
+                  {project.timeEstimate}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">{project.description}</p>
+              
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Skills:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary" className="bg-muted">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              {project.tags && project.tags.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Tags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="bg-secondary/10 text-secondary">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
-          
-          <TabsContent value="all" className="mt-0">
-            <ProjectGrid projects={recommendations} onSelectProject={onSelectProject} />
-          </TabsContent>
-          
-          <TabsContent value="openai" className="mt-0">
-            <ProviderRecommendations
-              projects={enhancedRecommendations.openai}
-              loading={loadingProviders.openai}
-              provider="OpenAI"
-              onRefresh={() => fetchEnhancedRecommendations('openai')}
-              disabled={loadingProviders.openai || !aiConfig.openai.enabled}
-              onSelectProject={onSelectProject}
-            />
-          </TabsContent>
-          
-          <TabsContent value="gemini" className="mt-0">
-            <ProviderRecommendations
-              projects={enhancedRecommendations.gemini}
-              loading={loadingProviders.gemini}
-              provider="Gemini"
-              onRefresh={() => fetchEnhancedRecommendations('gemini')}
-              disabled={loadingProviders.gemini || !aiConfig.gemini.enabled}
-              onSelectProject={onSelectProject}
-            />
-          </TabsContent>
-          
-          <TabsContent value="claude" className="mt-0">
-            <ProviderRecommendations
-              projects={enhancedRecommendations.claude}
-              loading={loadingProviders.claude}
-              provider="Claude"
-              onRefresh={() => fetchEnhancedRecommendations('claude')}
-              disabled={loadingProviders.claude || !aiConfig.claude.enabled}
-              onSelectProject={onSelectProject}
-            />
-          </TabsContent>
-          
-          <TabsContent value="github" className="mt-0">
-            <ProviderRecommendations
-              projects={enhancedRecommendations.github}
-              loading={loadingProviders.github}
-              provider="GitHub"
-              onRefresh={() => fetchEnhancedRecommendations('github')}
-              disabled={loadingProviders.github || !aiConfig.github.enabled}
-              onSelectProject={onSelectProject}
-            />
-          </TabsContent>
-        </Tabs>
-      )}
-      
-      {!aiConfig && <ProjectGrid projects={recommendations} onSelectProject={onSelectProject} />}
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => onSelectProject && onSelectProject(project)}
+              >
+                <ThumbsUp className="h-4 w-4" />
+                View Details
+              </Button>
+              
+              {project.sourceCode?.githubUrl && (
+                <a 
+                  href={project.sourceCode.githubUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  GitHub
+                </a>
+              )}
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
