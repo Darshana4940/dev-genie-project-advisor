@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { AIConfigState } from '@/types';
+import { AIConfigState, ProjectSuggestion } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
