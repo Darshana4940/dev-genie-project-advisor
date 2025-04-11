@@ -257,26 +257,183 @@ const generateProjectRecommendations = (
       type: "Web App",
       difficulty: "advanced",
       timeEstimate: "2-3 months"
+    },
+    // Add more unique project ideas to ensure we have at least 10 options
+    {
+      title: "Interactive Learning Platform",
+      description: "Create an educational platform with courses, quizzes, progress tracking, and interactive exercises for students.",
+      skills: ["React", "Node.js", "MongoDB", "Express", "TypeScript"],
+      type: "Education App",
+      difficulty: "advanced",
+      timeEstimate: "2-3 months"
+    },
+    {
+      title: "Smart Home Dashboard",
+      description: "Build a dashboard to control and monitor smart home devices with real-time updates and automation rules.",
+      skills: ["React", "Node.js", "MQTT", "WebSockets", "TypeScript"],
+      type: "IoT App",
+      difficulty: "advanced",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Event Management System",
+      description: "Create a platform for organizing events, selling tickets, managing attendees, and generating reports.",
+      skills: ["React", "Node.js", "Express", "PostgreSQL", "Stripe API"],
+      type: "Web App",
+      difficulty: "intermediate",
+      timeEstimate: "1-3 months"
+    },
+    {
+      title: "Code Snippet Manager",
+      description: "Develop an application to save, organize, and share useful code snippets with syntax highlighting and tagging.",
+      skills: ["React", "TypeScript", "Firebase", "Monaco Editor"],
+      type: "Developer Tool",
+      difficulty: "intermediate",
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Collaborative Whiteboard",
+      description: "Build a real-time collaborative drawing and brainstorming tool with text, shapes, and sticky notes.",
+      skills: ["React", "Canvas API", "Socket.io", "Node.js", "Express"],
+      type: "Productivity Tool",
+      difficulty: "advanced",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Habit Tracker",
+      description: "Create an app to track daily habits, view streaks, and visualize progress with statistics and insights.",
+      skills: ["React", "TypeScript", "LocalStorage", "Chart.js"],
+      type: "Productivity Tool",
+      difficulty: "beginner",
+      timeEstimate: "2-3 weeks"
+    },
+    {
+      title: "Recipe Box",
+      description: "Build a personal recipe collection app with search, categorization, and meal planning features.",
+      skills: ["React", "Firebase", "TypeScript", "Tailwind CSS"],
+      type: "Lifestyle App",
+      difficulty: "beginner",
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Virtual Bookshelf",
+      description: "Create an application to track books you've read, want to read, and are currently reading with reviews and ratings.",
+      skills: ["React", "Firebase", "Google Books API", "TypeScript"],
+      type: "Lifestyle App",
+      difficulty: "intermediate",
+      timeEstimate: "3-5 weeks"
+    },
+    {
+      title: "Podcast Directory",
+      description: "Develop a podcast discovery platform with search, categories, reviews, and playback functionality.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "Audio API"],
+      type: "Media App",
+      difficulty: "intermediate",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "AI Image Generator",
+      description: "Create an application that uses AI to generate images based on text prompts or other input parameters.",
+      skills: ["React", "Node.js", "OpenAI API", "Canvas API"],
+      type: "AI App",
+      difficulty: "advanced",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Technical Documentation Site",
+      description: "Build a comprehensive documentation site for a library, API, or framework with search and code examples.",
+      skills: ["React", "Markdown", "Search Algorithms", "Prism.js"],
+      type: "Documentation",
+      difficulty: "beginner",
+      timeEstimate: "2-4 weeks"
+    },
+    {
+      title: "Cryptocurrency Dashboard",
+      description: "Create a dashboard to track cryptocurrency prices, portfolio value, and market trends with real-time updates.",
+      skills: ["React", "WebSockets", "Chart.js", "Cryptocurrency APIs"],
+      type: "Finance App",
+      difficulty: "intermediate",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Movie Recommendation Engine",
+      description: "Build an application that recommends movies based on user preferences, ratings, and viewing history.",
+      skills: ["React", "Node.js", "Express", "MongoDB", "TMDB API"],
+      type: "Entertainment App",
+      difficulty: "intermediate",
+      timeEstimate: "1-2 months"
+    },
+    {
+      title: "Multiplayer Game",
+      description: "Develop a simple multiplayer browser game with real-time interactions and a leaderboard.",
+      skills: ["JavaScript", "HTML Canvas", "Socket.io", "Node.js"],
+      type: "Game",
+      difficulty: "advanced",
+      timeEstimate: "1-3 months"
     }
   ];
   
-  // Filter projects based on user skills and difficulty
-  const filteredProjects = projectIdeas.filter(project => {
-    // Match by difficulty
-    if (project.difficulty !== difficulty) {
-      // Allow one level down for advanced users if not enough advanced projects
-      if (!(difficulty === 'advanced' && project.difficulty === 'intermediate')) {
-        return false;
-      }
-    }
-    
-    // Match by skills (at least one skill should match)
+  // Filter projects based on user skills and difficulty, ensuring we get at least 10 recommendations
+  let filteredProjects = projectIdeas.filter(project => {
+    // Check if at least one skill matches
     const hasMatchingSkill = project.skills.some(skill => 
       skillsLower.includes(skill.toLowerCase())
     );
     
-    return hasMatchingSkill;
+    // For difficulty, we're more flexible to ensure we get enough recommendations
+    const difficultyMatch = 
+      project.difficulty === difficulty || 
+      (difficulty === 'advanced' && project.difficulty === 'intermediate') ||
+      (difficulty === 'intermediate' && (project.difficulty === 'beginner' || project.difficulty === 'advanced'));
+    
+    return hasMatchingSkill && difficultyMatch;
   });
+  
+  // If we don't have enough projects after filtering by skill and difficulty, 
+  // add more based on just skill match
+  if (filteredProjects.length < 10) {
+    const additionalProjects = projectIdeas.filter(project => {
+      // Only include projects not already in filteredProjects
+      if (filteredProjects.some(p => p.title === project.title)) {
+        return false;
+      }
+      
+      // Match by skills only
+      return project.skills.some(skill => 
+        skillsLower.includes(skill.toLowerCase())
+      );
+    });
+    
+    filteredProjects = [...filteredProjects, ...additionalProjects];
+  }
+  
+  // If we still don't have enough, add projects that match project types
+  if (filteredProjects.length < 10) {
+    const typeProjects = projectIdeas.filter(project => {
+      // Only include projects not already in filteredProjects
+      if (filteredProjects.some(p => p.title === project.title)) {
+        return false;
+      }
+      
+      // Match by project type
+      return projectTypes.includes(project.type);
+    });
+    
+    filteredProjects = [...filteredProjects, ...typeProjects];
+  }
+  
+  // If we still don't have 10, just add random projects that are not already included
+  if (filteredProjects.length < 10) {
+    const remainingProjects = projectIdeas.filter(project => 
+      !filteredProjects.some(p => p.title === project.title)
+    );
+    
+    // Shuffle the remaining projects
+    const shuffled = [...remainingProjects].sort(() => 0.5 - Math.random());
+    
+    // Add enough to reach at least 10 total
+    filteredProjects = [...filteredProjects, ...shuffled.slice(0, Math.max(10 - filteredProjects.length, 0))];
+  }
   
   // Score and sort projects
   const scoredProjects = filteredProjects.map(project => {
@@ -309,8 +466,9 @@ const generateProjectRecommendations = (
     return { ...project, score };
   }).sort((a, b) => b.score - a.score);
   
-  // Take top N projects
-  const topProjects = scoredProjects.slice(0, 5);
+  // Take top 10 projects minimum, or more if available
+  const numProjects = Math.max(10, Math.min(scoredProjects.length, 15));
+  const topProjects = scoredProjects.slice(0, numProjects);
   
   // Convert to ProjectSuggestion format
   topProjects.forEach((project, index) => {
