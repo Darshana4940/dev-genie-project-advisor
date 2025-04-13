@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        console.log('Auth state changed:', event, newSession?.user?.email);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
@@ -54,6 +55,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Got existing session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -71,17 +73,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
         return;
       }
 
+      console.log('Profile data:', data);
       setProfile(data);
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
@@ -90,12 +94,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Attempting signup for:', email);
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: 'Sign up failed',
           description: error.message,
@@ -104,6 +110,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
+      console.log('Signup successful:', data);
       toast({
         title: 'Sign up successful',
         description: 'Please check your email for verification link.',
@@ -111,9 +118,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       return { error: null };
     } catch (error: any) {
+      console.error('Unexpected signup error:', error);
       toast({
         title: 'Sign up failed',
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
       return { error };
@@ -122,12 +130,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting login for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: 'Login failed',
           description: error.message,
@@ -136,6 +146,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
+      console.log('Login successful:', data.user?.email);
       toast({
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
@@ -143,9 +154,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       return { error: null };
     } catch (error: any) {
+      console.error('Unexpected login error:', error);
       toast({
         title: 'Login failed',
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
       return { error };
@@ -153,6 +165,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
+    console.log('Signing out user');
     await supabase.auth.signOut();
     toast({
       title: 'Logged out',

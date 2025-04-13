@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -31,6 +30,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Auth: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('login');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   
@@ -60,17 +60,38 @@ const Auth: React.FC = () => {
   }, [user, navigate]);
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    const { error } = await signIn(data.email, data.password);
-    if (!error) {
-      navigate('/');
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      console.log('Login submission:', data.email);
+      const { error } = await signIn(data.email, data.password);
+      if (!error) {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Login form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const onSignupSubmit = async (data: SignupFormValues) => {
-    const { error } = await signUp(data.email, data.password);
-    if (!error) {
-      // In the AuthContext, we show a toast about checking email
-      setActiveTab('login');
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      console.log('Signup submission:', data.email);
+      const { error } = await signUp(data.email, data.password);
+      if (!error) {
+        // In the AuthContext, we show a toast about checking email
+        setActiveTab('login');
+        signupForm.reset();
+      }
+    } catch (error) {
+      console.error('Signup form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -135,8 +156,12 @@ const Auth: React.FC = () => {
                   </CardContent>
                   
                   <CardFooter>
-                    <Button type="submit" className="w-full bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary">
-                      Login
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Logging in...' : 'Login'}
                     </Button>
                   </CardFooter>
                 </form>
@@ -191,8 +216,12 @@ const Auth: React.FC = () => {
                   </CardContent>
                   
                   <CardFooter>
-                    <Button type="submit" className="w-full bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary">
-                      Sign Up
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Signing up...' : 'Sign Up'}
                     </Button>
                   </CardFooter>
                 </form>
