@@ -116,6 +116,25 @@ const RecommendedProjects: React.FC<RecommendedProjectsProps> = ({
                   </div>
                 </div>
               )}
+
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Resources:</h4>
+                <ul className="space-y-2">
+                  {project.resources.slice(0, 3).map((resource, index) => (
+                    <li key={index} className="flex items-center gap-2 text-sm">
+                      <ExternalLink className="h-4 w-4 text-primary" />
+                      <a 
+                        href={resource.url !== '#' ? resource.url : `https://www.google.com/search?q=${encodeURIComponent(resource.title)}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline"
+                      >
+                        {resource.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button 
