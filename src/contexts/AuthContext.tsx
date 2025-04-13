@@ -9,9 +9,16 @@ type AuthContextType = {
   user: User | null;
   profile: any | null;
   isLoading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData: SignupUserData) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+};
+
+export type SignupUserData = {
+  fullName: string;
+  contact: string;
+  experienceLevel: string;
+  interests?: string[];
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -92,12 +99,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, userData: SignupUserData) => {
     try {
-      console.log('Attempting signup for:', email);
+      console.log('Attempting signup for:', email, 'with user data:', userData);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: userData.fullName,
+            contact: userData.contact,
+            experience_level: userData.experienceLevel,
+            interests: userData.interests || []
+          }
+        }
       });
 
       if (error) {

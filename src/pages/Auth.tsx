@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, SignupUserData } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -19,6 +20,12 @@ const loginSchema = z.object({
 });
 
 const signupSchema = loginSchema.extend({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters' }),
+  contact: z.string().min(5, { message: 'Contact information must be at least 5 characters' }),
+  experienceLevel: z.enum(['beginner', 'intermediate', 'advanced'], {
+    required_error: 'Please select your experience level',
+  }),
+  interests: z.string().optional(),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -49,6 +56,10 @@ const Auth: React.FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
+      fullName: '',
+      contact: '',
+      experienceLevel: 'beginner',
+      interests: '',
     },
   });
 
@@ -82,7 +93,18 @@ const Auth: React.FC = () => {
     try {
       setIsSubmitting(true);
       console.log('Signup submission:', data.email);
-      const { error } = await signUp(data.email, data.password);
+      
+      // Convert interests string to array if provided
+      const interests = data.interests ? data.interests.split(',').map(i => i.trim()) : undefined;
+      
+      const userData: SignupUserData = {
+        fullName: data.fullName,
+        contact: data.contact,
+        experienceLevel: data.experienceLevel,
+        interests: interests
+      };
+      
+      const { error } = await signUp(data.email, data.password, userData);
       if (!error) {
         // In the AuthContext, we show a toast about checking email
         setActiveTab('login');
@@ -174,12 +196,80 @@ const Auth: React.FC = () => {
                   <CardContent className="space-y-4">
                     <FormField
                       control={signupForm.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={signupForm.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input placeholder="example@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={signupForm.control}
+                      name="contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Information</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Phone or other contact info" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={signupForm.control}
+                      name="experienceLevel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Experience Level</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select your experience level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="beginner">Beginner</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={signupForm.control}
+                      name="interests"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Interests (optional, comma-separated)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="React, TypeScript, Node.js" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
