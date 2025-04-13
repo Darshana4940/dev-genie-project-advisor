@@ -51,6 +51,10 @@ const ProjectAdvisor = () => {
     github: { provider: 'github', apiKey: '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', enabled: true }
   });
 
+  const isFormValid = () => {
+    return skills.length > 0 && experience !== '' && interests.trim() !== '';
+  };
+
   useEffect(() => {
     const savedConfig = localStorage.getItem('aiConfig');
     if (savedConfig) {
@@ -175,10 +179,10 @@ const ProjectAdvisor = () => {
   };
 
   const generateProjects = () => {
-    if (skills.length === 0) {
+    if (!isFormValid()) {
       toast({
-        title: "Skills are required",
-        description: "Please add at least one skill before generating suggestions.",
+        title: "Required fields missing",
+        description: "Please add skills, select experience level, and fill in your interests before generating suggestions.",
         variant: "destructive",
       });
       return;
@@ -333,7 +337,7 @@ const ProjectAdvisor = () => {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm">No skills added yet.</p>
+                          <p className="text-muted-foreground text-sm">No skills added yet. <span className="text-destructive font-medium">*Required</span></p>
                         )}
                       </div>
                     </div>
@@ -348,7 +352,9 @@ const ProjectAdvisor = () => {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Experience Level</label>
+                        <label className="text-sm font-medium">
+                          Experience Level <span className="text-destructive">*</span>
+                        </label>
                         <Select value={experience} onValueChange={setExperience}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select your experience level" />
@@ -361,15 +367,23 @@ const ProjectAdvisor = () => {
                             <SelectItem value="senior">Senior Developer (5+ years)</SelectItem>
                           </SelectContent>
                         </Select>
+                        {!experience && (
+                          <p className="text-xs text-destructive mt-1">Experience level is required</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Interests</label>
+                        <label className="text-sm font-medium">
+                          Interests <span className="text-destructive">*</span>
+                        </label>
                         <Textarea 
                           placeholder="What are you interested in? (e.g. web development, machine learning, game development)"
                           value={interests}
                           onChange={(e) => setInterests(e.target.value)}
                         />
+                        {interests.trim() === '' && (
+                          <p className="text-xs text-destructive mt-1">Interests are required</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
@@ -379,6 +393,7 @@ const ProjectAdvisor = () => {
                           value={goals}
                           onChange={(e) => setGoals(e.target.value)}
                         />
+                        <p className="text-xs text-muted-foreground">Optional</p>
                       </div>
                     </div>
                   </CardContent>
@@ -389,10 +404,17 @@ const ProjectAdvisor = () => {
                 <Button 
                   size="lg"
                   onClick={generateProjects}
-                  disabled={isGenerating}
+                  disabled={isGenerating || !isFormValid()}
                   className="bg-gradient-to-r from-dev-primary to-dev-accent hover:from-dev-accent hover:to-dev-primary text-white"
                 >
-                  {isGenerating ? 'Generating...' : 'Generate Project Suggestions'}
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    'Generate Project Suggestions'
+                  )}
                 </Button>
               </div>
             </TabsContent>
