@@ -19,6 +19,7 @@ export type SignupUserData = {
   contact: string;
   experienceLevel: string;
   interests?: string[];
+  learningGoals?: string;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -110,7 +111,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             full_name: userData.fullName,
             contact: userData.contact,
             experience_level: userData.experienceLevel,
-            interests: userData.interests || []
+            interests: userData.interests || [],
+            learning_goals: userData.learningGoals || ''
           }
         }
       });

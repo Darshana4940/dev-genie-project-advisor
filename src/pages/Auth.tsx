@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -25,7 +26,8 @@ const signupSchema = loginSchema.extend({
   experienceLevel: z.enum(['beginner', 'intermediate', 'advanced'], {
     required_error: 'Please select your experience level',
   }),
-  interests: z.string().optional(),
+  interests: z.string().min(3, { message: 'Please enter at least one interest' }),
+  learningGoals: z.string().optional(),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -60,6 +62,7 @@ const Auth: React.FC = () => {
       contact: '',
       experienceLevel: 'beginner',
       interests: '',
+      learningGoals: '',
     },
   });
 
@@ -95,7 +98,7 @@ const Auth: React.FC = () => {
       console.log('Signup submission:', data.email);
       
       // Convert interests string to array if provided
-      const interests = data.interests ? data.interests.split(',').map(i => i.trim()) : undefined;
+      const interests = data.interests ? data.interests.split(',').map(i => i.trim()) : [];
       
       const userData: SignupUserData = {
         fullName: data.fullName,
@@ -199,9 +202,9 @@ const Auth: React.FC = () => {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>Full Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input placeholder="John Doe" {...field} required />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -213,9 +216,9 @@ const Auth: React.FC = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Email *</FormLabel>
                           <FormControl>
-                            <Input placeholder="example@email.com" {...field} />
+                            <Input placeholder="example@email.com" {...field} required />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -227,9 +230,9 @@ const Auth: React.FC = () => {
                       name="contact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Information</FormLabel>
+                          <FormLabel>Contact Information *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Phone or other contact info" {...field} />
+                            <Input placeholder="Phone or other contact info" {...field} required />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -241,10 +244,11 @@ const Auth: React.FC = () => {
                       name="experienceLevel"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Experience Level</FormLabel>
+                          <FormLabel>Experience Level *</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
+                            required
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -267,9 +271,32 @@ const Auth: React.FC = () => {
                       name="interests"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Interests (optional, comma-separated)</FormLabel>
+                          <FormLabel>Interests *</FormLabel>
                           <FormControl>
-                            <Input placeholder="React, TypeScript, Node.js" {...field} />
+                            <Textarea 
+                              placeholder="What are you interested in? (e.g. web development, machine learning, game development)" 
+                              className="min-h-[80px]"
+                              {...field} 
+                              required
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={signupForm.control}
+                      name="learningGoals"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Learning Goals (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="What do you want to achieve with your next project? What skills do you want to develop?"
+                              className="min-h-[80px]"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -281,9 +308,9 @@ const Auth: React.FC = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>Password *</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
+                            <Input type="password" placeholder="******" {...field} required />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -295,9 +322,9 @@ const Auth: React.FC = () => {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
+                          <FormLabel>Confirm Password *</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
+                            <Input type="password" placeholder="******" {...field} required />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
