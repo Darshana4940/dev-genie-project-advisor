@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -49,34 +48,64 @@ const ProjectSourceCode: React.FC<ProjectSourceCodeProps> = ({
   }, [open, project]);
 
   const generateMockSourceData = (project: ProjectSuggestion) => {
-    // This function simulates generating relevant source links based on project skills
+    // Generate GitHub repositories based on project skills
     const githubRepos = project.skills.map((skill, index) => ({
       name: `${skill}-project-${index + 1}`,
-      url: `https://github.com/examples/${skill.toLowerCase()}-examples`,
+      url: skill.toLowerCase() === 'react' 
+        ? 'https://github.com/facebook/react'
+        : skill.toLowerCase() === 'python'
+        ? 'https://github.com/python/cpython'
+        : skill.toLowerCase() === 'tensorflow.js'
+        ? 'https://github.com/tensorflow/tfjs'
+        : skill.toLowerCase() === 'node.js'
+        ? 'https://github.com/nodejs/node'
+        : `https://github.com/topics/${skill.toLowerCase()}`,
       description: `A ${skill} project example that demonstrates key concepts related to ${project.title}`,
     })).slice(0, 5);
 
+    // Generate relevant tutorials from reputable sources
     const tutorials = [
       {
         name: `Getting Started with ${project.title}`,
-        url: `https://www.tutorial-site.com/${project.title.toLowerCase().replace(/\s+/g, '-')}`,
-        type: 'video'
+        url: project.skills.includes('React') 
+          ? 'https://react.dev/learn'
+          : project.skills.includes('Python')
+          ? 'https://docs.python.org/3/tutorial/'
+          : `https://www.freecodecamp.org/news/search/?query=${encodeURIComponent(project.skills[0])}`,
+        type: 'official'
       },
       {
         name: `${project.title} Step-by-Step Guide`,
         url: `https://www.freecodecamp.org/news/${project.title.toLowerCase().replace(/\s+/g, '-')}`,
-        type: 'article'
+        type: 'tutorial'
       },
       {
         name: `Advanced ${project.skills[0]} Techniques`,
-        url: `https://dev.to/tutorials/${project.skills[0].toLowerCase()}`,
-        type: 'tutorial'
+        url: project.skills[0].toLowerCase() === 'react'
+          ? 'https://react.dev/reference/react'
+          : project.skills[0].toLowerCase() === 'python'
+          ? 'https://realpython.com/'
+          : `https://dev.to/t/${project.skills[0].toLowerCase()}`,
+        type: 'advanced'
       }
     ];
 
-    const documentation = project.skills.map((skill, index) => ({
+    // Generate documentation links for each skill
+    const documentation = project.skills.map((skill) => ({
       name: `${skill} Official Documentation`,
-      url: `https://docs.example.com/${skill.toLowerCase()}`,
+      url: skill.toLowerCase() === 'react'
+        ? 'https://react.dev/'
+        : skill.toLowerCase() === 'python'
+        ? 'https://docs.python.org/3/'
+        : skill.toLowerCase() === 'tensorflow.js'
+        ? 'https://www.tensorflow.org/js/docs'
+        : skill.toLowerCase() === 'node.js'
+        ? 'https://nodejs.org/docs/latest/api/'
+        : skill.toLowerCase() === 'mongodb'
+        ? 'https://www.mongodb.com/docs/'
+        : skill.toLowerCase() === 'firebase'
+        ? 'https://firebase.google.com/docs'
+        : `https://www.google.com/search?q=${encodeURIComponent(skill)}+documentation`,
       description: `Official documentation for ${skill} with examples and API references`,
     }));
 
