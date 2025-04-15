@@ -427,45 +427,31 @@ const ProjectAdvisor = () => {
                       <CardHeader>
                         <CardTitle>{project.title}</CardTitle>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          <Badge variant="outline" className="bg-dev-primary/10 text-dev-primary border-dev-primary/20">
+                          <Badge variant="outline" className="bg-purple-100 text-purple-800">
                             {project.difficulty}
                           </Badge>
                           <Badge variant="outline" className="bg-muted">
                             {project.timeEstimate}
                           </Badge>
                           {project.skillMatchScore && (
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                            <Badge variant="outline" className="bg-green-100 text-green-800">
                               {project.skillMatchScore}% Match
                             </Badge>
                           )}
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-muted-foreground">{project.description}</p>
+                        <p className="text-muted-foreground mb-4">{project.description}</p>
                         
-                        <div className="mt-4">
+                        <div className="mt-2">
                           <h4 className="text-sm font-medium mb-2">Skills Required:</h4>
                           <div className="flex flex-wrap gap-2">
                             {project.skills.map((skill, index) => (
-                              <Badge key={index} variant="secondary" className="bg-muted">
+                              <Badge key={index} variant="secondary">
                                 {skill}
                               </Badge>
                             ))}
                           </div>
-                        </div>
-                        
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Resources:</h4>
-                          <ul className="space-y-2">
-                            {project.resources.slice(0, 2).map((resource, index) => (
-                              <li key={index} className="flex items-center gap-2 text-sm">
-                                <ExternalLink className="h-4 w-4 text-dev-primary" />
-                                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-dev-primary hover:underline">
-                                  {resource.title}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
                         </div>
                       </CardContent>
                       <CardFooter className="flex justify-between">
@@ -479,7 +465,7 @@ const ProjectAdvisor = () => {
                         <Button 
                           size="sm"
                           onClick={() => saveProject(project)}
-                          className="bg-dev-primary text-white hover:bg-dev-secondary"
+                          className="bg-blue-600 text-white hover:bg-blue-700"
                         >
                           Save Project
                         </Button>

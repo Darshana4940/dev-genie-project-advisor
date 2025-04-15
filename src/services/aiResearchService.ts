@@ -1,4 +1,3 @@
-
 import { AIConfigState, ProjectSuggestion, ResearchPaper, ProjectResource } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toJson } from '@/utils/typeUtils';
@@ -684,3 +683,120 @@ export const getCodeSamples = async (
     throw new Error('Failed to get code samples');
   }
 };
+
+/**
+ * Fetch project resources using Google Custom Search API
+ */
+export const fetchProjectResources = async (project: any) => {
+  const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+  const SEARCH_ENGINE_ID = process.env.NEXT_PUBLIC_GOOGLE_SEARCH_ENGINE_ID;
+  
+  const resources: ProjectResource[] = [];
+  const { title, skills } = project;
+
+  try {
+    // Fetch tutorial resources
+    const tutorialQuery = `${title} step by step tutorial`;
+    const tutorialResponse = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(tutorialQuery)}`
+    );
+    const tutorialData = await tutorialResponse.json();
+    
+    if (tutorialData.items && tutorialData.items.length > 0) {
+      resources.push({
+        title: `Building ${title} Step by Step`,
+        url: tutorialData.items[0].link,
+        type: 'tutorial',
+        description: tutorialData.items[0].snippet
+      });
+    }
+
+    // Fetch documentation for main skill
+    if (skills.length > 0) {
+      const docQuery = `${skills[0]} official documentation`;
+      const docResponse = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(docQuery)}`
+      );
+      const docData = await docResponse.json();
+
+      if (docData.items && docData.items.length > 0) {
+        resources.push({
+          title: `${skills[0]} Documentation`,
+          url: docData.items[0].link,
+          type: 'documentation',
+          description: docData.items[0].snippet
+        });
+      }
+    }
+
+    // Add GitHub example with relevant search
+    const githubQuery = `${title} ${skills.join(' ')} github`;
+    const githubResponse = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(githubQuery)}`
+    );
+    const githubData = await githubResponse.json();
+
+    if (githubData.items && githubData.items.length > 0) {
+      resources.push({
+        title: `${title} Sample Code`,
+        url: githubData.items[0].link,
+        type: 'github',
+        description: githubData.items[0].snippet
+      });
+    }
+
+    return resources;
+  } catch (error) {
+    console.error('Error fetching resources:', error);
+    return getFallbackResources(project);
+  }
+};
+
+/**
+ * Fallback resources when API fails
+ */
+const getFallbackResources = (project: any): ProjectResource[] => {
+  const { title, skills } = project;
+  return [
+    {
+      title: `Building ${title} Step by Step`,
+      url: skills.includes('React') 
+        ? 'https://react.dev/learn'
+        : skills.includes('Python')
+        ? 'https://docs.python.org/3/tutorial/'
+        : `https://www.freecodecamp.org/news/search/?query=${encodeURIComponent(skills[0])}`,
+      type: 'tutorial'
+    },
+    {
+      title: `${skills[0]} Documentation`,
+      url: getDocumentationUrl(skills[0]),
+      type: 'documentation'
+    }
+  ];
+};
+
+/**
+ * Get documentation URL based on technology
+ */
+const getDocumentationUrl = (skill: string): string => {
+  const skillLower = skill.toLowerCase();
+  switch (skillLower) {
+    case 'react':
+      return 'https://react.dev/';
+    case 'python':
+      return 'https://docs.python.org/3/';
+    case 'tensorflow.js':
+      return 'https://www.tensorflow.org/js/docs';
+    case 'node.js':
+      return 'https://nodejs.org/docs/latest/api/';
+    case 'mongodb':
+      return 'https://www.mongodb.com/docs/';
+    case 'firebase':
+      return 'https://firebase.google.com/docs';
+    default:
+      return `https://www.google.com/search?q=${encodeURIComponent(skill)}+documentation`;
+  }
+};
+
+// Export other functions if needed
+export { getDocumentationUrl };

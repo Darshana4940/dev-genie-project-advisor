@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Code, Github, BookOpen, FileText } from 'lucide-react';
 import { ProjectSuggestion } from '@/types';
+import { fetchProjectResources } from '@/services/aiResearchService';
 
 interface ProjectSourceCodeProps {
   project: ProjectSuggestion | null;
@@ -29,7 +30,7 @@ const ProjectSourceCode: React.FC<ProjectSourceCodeProps> = ({
   const [currentTab, setCurrentTab] = useState('github');
   const [sourceData, setSourceData] = useState({
     github: [] as Array<{name: string, url: string, description: string}>,
-    tutorials: [] as Array<{name: string, url: string, type: string}>,
+    tutorials: [] as Array<{name: string, url: string, type: string, description?: string}>,
     documentation: [] as Array<{name: string, url: string, description: string}>
   });
 
@@ -37,13 +38,42 @@ const ProjectSourceCode: React.FC<ProjectSourceCodeProps> = ({
     if (open && project) {
       setLoading(true);
       
-      // Simulate API call to fetch source code references
-      setTimeout(() => {
-        // Generate mock source code data based on project skills
-        const mockSourceData = generateMockSourceData(project);
-        setSourceData(mockSourceData);
-        setLoading(false);
-      }, 1500);
+      const fetchResources = async () => {
+        try {
+          const resources = await fetchProjectResources(project);
+          
+          // Organize resources by type
+          const organized = {
+            github: resources.filter(r => r.type === 'github').map(r => ({
+              name: r.title,
+              url: r.url,
+              description: r.description || `A curated repository related to ${project.title}`
+            })),
+            tutorials: resources.filter(r => r.type === 'tutorial').map(r => ({
+              name: r.title,
+              url: r.url,
+              type: 'tutorial',
+              description: r.description
+            })),
+            documentation: resources.filter(r => r.type === 'documentation').map(r => ({
+              name: r.title,
+              url: r.url,
+              description: r.description || `Official documentation and references`
+            }))
+          };
+          
+          setSourceData(organized);
+        } catch (error) {
+          console.error('Error fetching resources:', error);
+          // Fallback to mock data if API fails
+          const mockData = generateMockSourceData(project);
+          setSourceData(mockData);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchResources();
     }
   }, [open, project]);
 
